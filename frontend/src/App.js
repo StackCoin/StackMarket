@@ -13,6 +13,35 @@ function LoginButton() {
   return <button onClick={() => loginWithRedirect()}>Log In</button>;
 }
 
+function Routing() {
+  const { isLoading, error } = useAuth0();
+
+  if (error) {
+    return <div>FUCK@!!! Ireally screwed up man, and I'm sorry... Please please please forgive me.... IM SORRY I said I'm sorry man!!!!<br/>{error.message}</div>
+  }
+
+  if (isLoading) {
+    return "Loading..."
+  }
+
+  return (
+    <Router>
+      <Switch>
+        <Route exact path="/">
+          <div className="App">
+            <header className="App-header">
+              <LoginButton/>
+            </header>
+          </div>
+        </Route>
+        <Route exact path="/dashboard">
+          <Dashboard/>
+        </Route>
+      </Switch>
+    </Router>
+  )
+}
+
 function App() {
   return (
     <Auth0Provider
@@ -22,20 +51,7 @@ function App() {
       onRedirectCallback={() => console.log("Hello world")}
       audience={process.env.REACT_APP_AUTH0_AUDIENCE}
     >
-      <Router>
-        <Switch>
-          <Route exact path="/">
-            <div className="App">
-              <header className="App-header">
-                <LoginButton/>
-              </header>
-            </div>
-          </Route>
-          <Route exact path="/dashboard">
-            <Dashboard/>
-          </Route>
-        </Switch>
-      </Router>
+      <Routing/>
     </Auth0Provider>
   );
 }
