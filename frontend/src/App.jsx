@@ -1,61 +1,112 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import { Auth0Provider } from '@auth0/auth0-react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
+import {
+  BrowserRouter as Router,
+  useHistory,
+  Route,
+  Switch,
+} from 'react-router-dom';
+import {
+  gql,
+  useQuery,
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+  ApolloProvider,
+  createApolloClient,
+} from '@apollo/client';
+import { ThemeProvider, CSSReset, Flex } from '@chakra-ui/core';
 import Dashboard from './Dashboard';
-
-function LoginButton() {
-  const { loginWithRedirect } = useAuth0();
-  return <button onClick={() => loginWithRedirect()}>Log In</button>;
-}
+import LandingPage from './LandingPage';
+import Listings from './Listings';
+import Stack from './stack.png';
 
 function Routing() {
   const { isLoading, error } = useAuth0();
 
   if (error) {
     return (
-      <div>
+      <Flex alignItems="center" justifyContent="center">
         FUCK@!!! Ireally screwed up man, and Im sorry... Please please please
         forgive me.... IM SORRY I said Im sorry man!!!!
         <br />
         {error.message}
-      </div>
+      </Flex>
     );
   }
 
   if (isLoading) {
-    return 'Loading...';
+    return (
+      <Flex
+        width="100%"
+        height="100vh"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <img src={Stack} width="40" height="40" />
+      </Flex>
+    );
   }
 
   return (
     <Router>
       <Switch>
         <Route exact path="/">
-          <div className="App">
-            <header className="App-header">
-              <LoginButton />
-            </header>
-          </div>
+          <LandingPage />
         </Route>
         <Route exact path="/dashboard">
           <Dashboard />
+        </Route>
+        <Route path="/listings/:id?">
+          <Listings />
         </Route>
       </Switch>
     </Router>
   );
 }
 
+function ApolloAuth({ children }) {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [accessToken, setAccessToken] = useState('');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      (async () => setAccessToken(await getAccessTokenSilently()))();
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  const apolloClient = new ApolloClient({
+    link: new HttpLink({
+      uri: process.env.REACT_APP_API_URL,
+      headers: isAuthenticated
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : {},
+    }),
+    cache: new InMemoryCache(),
+  });
+
+  return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
+}
+
 function App() {
   return (
-    <Auth0Provider
-      domain={process.env.REACT_APP_AUTH0_DOMAIN}
-      clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
-      redirectUri={`${process.env.REACT_APP_URL}/dashboard`}
-      audience={process.env.REACT_APP_AUTH0_AUDIENCE}
-    >
-      <Routing />
-    </Auth0Provider>
+    <ThemeProvider>
+      <Auth0Provider
+        domain={process.env.REACT_APP_AUTH0_DOMAIN}
+        clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
+        redirectUri={`${process.env.REACT_APP_URL}/dashboard`}
+        audience={process.env.REACT_APP_AUTH0_AUDIENCE}
+        scope="read:current_user update:current_user_metadata"
+      >
+        <ApolloAuth>
+          <CSSReset />
+          <Routing />
+        </ApolloAuth>
+      </Auth0Provider>
+    </ThemeProvider>
   );
 }
 
