@@ -1,14 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useSubscription, useMutation } from '@apollo/client';
+import { useHistory } from 'react-router-dom';
 import UserDisplay from './UserDisplay';
 import Topbar from './Topbar';
 import Store from './Store';
 import Listing from './Listing';
-import { Flex, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/core';
+import {
+  Stack,
+  Avatar,
+  AvatarBadge,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  Button,
+  Grid,
+  Text,
+  Flex,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+} from '@chakra-ui/core';
 
 const GET_DASHBOARD = gql`
-  query {
+  subscription {
     vendor_current {
       listing {
         name
@@ -19,7 +44,12 @@ const GET_DASHBOARD = gql`
       store {
         id
         name
-        vendors {
+        listing_aggregate {
+          aggregate {
+            count
+          }
+        }
+        vendor {
           user {
             id
             full_name
@@ -31,12 +61,59 @@ const GET_DASHBOARD = gql`
   }
 `;
 
+const CREATE_STORE = gql`
+  mutation($name: String!) {
+    insert_store(objects: { vendor: { data: {} }, name: $name }) {
+      returning {
+        id
+      }
+    }
+  }
+`;
+
+const EDIT_STORE = gql`
+  mutation($id: Int!, $name: String!) {
+    update_store(where: { id: { _eq: $id } }, _set: { name: $name }) {
+      returning {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const DELETE_STORE = gql`
+  mutation($id: Int!) {
+    delete_store(where: { id: { _eq: $id } }) {
+      returning {
+        id
+        name
+      }
+    }
+  }
+`;
+
 export default function Dashboard() {
   const { user, isLoading } = useAuth0();
-  const { loading, error, data } = useQuery(GET_DASHBOARD);
-  const {
-    vendor_current: [{ store: stores, listing: listings }],
-  } = data || { vendor_current: [{ store: [], listing: [] }] };
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { loading, error, data } = useSubscription(GET_DASHBOARD);
+  const [addStore, { data: store }] = useMutation(CREATE_STORE);
+  const [deleteStore] = useMutation(DELETE_STORE);
+  const [editStore] = useMutation(EDIT_STORE);
+  const [currentStore, setCurrentStore] = useState();
+  const vendors = data?.vendor_current || [];
+
+  const history = useHistory();
+
+  useEffect(() => {
+    if (currentStore)
+      editStore({
+        variables: { id: currentStore.id, name: currentStore.name },
+      });
+  }, [editStore, currentStore]);
+
+  console.log(vendors);
+
   return (
     <Flex
       w="100%"
@@ -47,27 +124,108 @@ export default function Dashboard() {
       <Topbar />
       <Tabs w="100%">
         <TabList>
-          <Tab>Stores</Tab>
-          <Tab>Listings</Tab>
+          <Tab>My Stores</Tab>
+          <Tab>My Listings</Tab>
         </TabList>
 
         <TabPanels mt={5}>
           <TabPanel>
-            <Flex justifyContent="space-around" wrap="wrap">
-              {stores.map((store) => (
-                <Store {...store} />
+            <Flex
+              pb={3}
+              pr={3}
+              pl={3}
+              justifyContent="flex-end"
+              wrap="wrap"
+            >
+              <Button
+                onClick={() => addStore({ variables: { name: 'Hello World' } })}
+                variantColor="green"
+                leftIcon="plus-square"
+              >
+                Create Store
+              </Button>
+            </Flex>
+            <Flex style={{ gap: '1rem' }} justifyContent="center" wrap="wrap">
+              {vendors.map(({ store }) => (
+                <Store
+                  {...store}
+                  onClick={() => {
+                    onOpen();
+                    setCurrentStore(store);
+                  }}
+                />
               ))}
             </Flex>
           </TabPanel>
           <TabPanel>
-            <Flex justifyContent="space-around" wrap="wrap">
-              {listings.map((listing) => (
-                <Listing {...listing} />
-              ))}
+            <Flex
+              pb={3}
+              pr={3}
+              pl={3}
+              justifyContent="flex-end"
+              wrap="wrap"
+            >
+              <Button
+                onClick={() => addStore({ variables: { name: 'Hello World' } })}
+                variantColor="green"
+                leftIcon="plus-square"
+              >
+                Create Store
+              </Button>
+            </Flex>
+            <Flex
+              pb={3}
+              pr={3}
+              pl={3}
+              style={{ gap: '1rem' }}
+              justifyContent="space-around"
+              wrap="wrap"
+            >
+              {vendors.map(({ listing }) =>
+                listing.map((value) => <Listing {...value} />)
+              )}
             </Flex>
           </TabPanel>
         </TabPanels>
       </Tabs>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Store</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {currentStore && (
+              <Grid templateColumns="2fr 3fr">
+                <Text as="b">Name</Text>
+                <Editable
+                  onSubmit={(name) =>
+                    setCurrentStore({ ...currentStore, name })
+                  }
+                  defaultValue={currentStore.name}
+                >
+                  <EditablePreview />
+                  <EditableInput />
+                </Editable>
+                <Text as="b">Vendors</Text>
+                <Text></Text>
+                <ModalFooter>
+                  <Button
+                    onClick={() => {
+                      onClose();
+                      deleteStore({ variables: { id: currentStore.id } });
+                    }}
+                    size="sm"
+                    variantColor="red"
+                    leftIcon="delete"
+                  >
+                    Delete Store
+                  </Button>
+                </ModalFooter>
+              </Grid>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 }

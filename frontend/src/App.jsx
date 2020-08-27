@@ -11,11 +11,14 @@ import {
   gql,
   useQuery,
   ApolloClient,
+  split,
   HttpLink,
   InMemoryCache,
   ApolloProvider,
   createApolloClient,
 } from '@apollo/client';
+import { WebSocketLink } from '@apollo/client/link/ws';
+import { getMainDefinition } from '@apollo/client/utilities';
 import { ThemeProvider, CSSReset, Flex } from '@chakra-ui/core';
 import Dashboard from './Dashboard';
 import LandingPage from './LandingPage';
@@ -76,15 +79,42 @@ function ApolloAuth({ children }) {
     }
   }, [isAuthenticated, getAccessTokenSilently]);
 
+  const headers = isAuthenticated
+    ? {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    : {};
+
+  const http = new HttpLink({
+    uri: process.env.REACT_APP_API_URL,
+    options: {
+      reconnect: true,
+    },
+    headers,
+  });
+
+  const ws = new WebSocketLink({
+    uri: process.env.REACT_APP_API_WS_URL,
+    options: {
+      reconnect: true,
+      connectionParams: {
+        headers,
+      },
+    },
+  });
+
   const apolloClient = new ApolloClient({
-    link: new HttpLink({
-      uri: process.env.REACT_APP_API_URL,
-      headers: isAuthenticated
-        ? {
-            Authorization: `Bearer ${accessToken}`,
-          }
-        : {},
-    }),
+    link: split(
+      ({ query }) => {
+        const definition = getMainDefinition(query);
+        return (
+          definition.kind === 'OperationDefinition' &&
+          definition.operation === 'subscription'
+        );
+      },
+      ws,
+      http
+    ),
     cache: new InMemoryCache(),
   });
 

@@ -2,6 +2,9 @@ import React from 'react';
 import { Button, Flex, Text } from '@chakra-ui/core';
 import { useAuth0 } from '@auth0/auth0-react';
 import UserDisplay from './UserDisplay';
+import {
+  useHistory,
+} from 'react-router-dom';
 
 function LoginButton() {
   const { loginWithRedirect } = useAuth0();
@@ -21,7 +24,10 @@ export default () => {
       <Text fontSize="xl" fontWeight="900" as="em">
         stackmarket
       </Text>
-      {isAuthenticated ? <UserDisplay user={user} logout={logout} /> : <LoginButton />}
+      <Flex>
+        <Button mr={3} variantColor="yellow">All Listings</Button>
+        {isAuthenticated ? <UserDisplay user={user} logout={logout} /> : <LoginButton />}
+      </Flex>
     </Flex>
   );
 };
