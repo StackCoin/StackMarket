@@ -85,6 +85,8 @@ function ApolloAuth({ children }) {
       }
     : {};
 
+  console.log(headers)
+
   const http = new HttpLink({
     uri: process.env.REACT_APP_API_URL,
     options: {

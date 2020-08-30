@@ -35,12 +35,6 @@ import {
 const GET_DASHBOARD = gql`
   subscription {
     vendor_current {
-      listing {
-        name
-        id
-        price
-        sold
-      }
       store {
         id
         name
@@ -56,6 +50,12 @@ const GET_DASHBOARD = gql`
             created_at
           }
         }
+        listing {
+          name
+          id
+          price
+          sold
+        }
       }
     }
   }
@@ -63,7 +63,7 @@ const GET_DASHBOARD = gql`
 
 const CREATE_STORE = gql`
   mutation($name: String!) {
-    insert_store(objects: { vendor: { data: {} }, name: $name }) {
+    insert_store(objects: { name: $name }) {
       returning {
         id
       }
