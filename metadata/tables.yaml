@@ -1,0 +1,285 @@
+- table:
+    schema: public
+    name: label
+  object_relationships:
+  - name: listing
+    using:
+      foreign_key_constraint_on: listing_id
+  - name: tag
+    using:
+      foreign_key_constraint_on: tag_id
+- table:
+    schema: public
+    name: listing
+  object_relationships:
+  - name: store
+    using:
+      foreign_key_constraint_on: store_id
+  array_relationships:
+  - name: labels
+    using:
+      foreign_key_constraint_on:
+        column: listing_id
+        table:
+          schema: public
+          name: label
+  insert_permissions:
+  - role: user
+    permission:
+      check:
+        store:
+          vendor_current:
+            user_id:
+              _eq: X-Hasura-User-Id-Internal
+      columns:
+      - name
+      - price
+      - sold
+      - sold_at
+      - store_id
+      backend_only: false
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - created_at
+      - id
+      - name
+      - price
+      - sold
+      - sold_at
+      - store_id
+      filter: {}
+      allow_aggregations: true
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - name
+      - price
+      - sold
+      - sold_at
+      - store_id
+      filter:
+        store:
+          vendor_current:
+            user_id:
+              _eq: X-Hasura-User-Id-Internal
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        store:
+          vendor_current:
+            user_id:
+              _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: store
+  object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: admin
+  - name: vendor_current
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: vendor_current
+        column_mapping:
+          id: store_id
+  array_relationships:
+  - name: listings
+    using:
+      foreign_key_constraint_on:
+        column: store_id
+        table:
+          schema: public
+          name: listing
+  - name: tags
+    using:
+      foreign_key_constraint_on:
+        column: store_id
+        table:
+          schema: public
+          name: tag
+  - name: vendors
+    using:
+      foreign_key_constraint_on:
+        column: store_id
+        table:
+          schema: public
+          name: vendor
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        admin: x-hasura-User-Id-Internal
+      columns:
+      - id
+      - name
+      backend_only: false
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - created_at
+      - id
+      - name
+      filter: {}
+      allow_aggregations: true
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - name
+      filter:
+        vendor_current:
+          user_id:
+            _eq: X-Hasura-User-Id-Internal
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        vendor_current:
+          user_id:
+            _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: tag
+  object_relationships:
+  - name: store
+    using:
+      foreign_key_constraint_on: store_id
+  array_relationships:
+  - name: labels
+    using:
+      foreign_key_constraint_on:
+        column: tag_id
+        table:
+          schema: public
+          name: label
+- table:
+    schema: public
+    name: user
+  array_relationships:
+  - name: stores
+    using:
+      foreign_key_constraint_on:
+        column: admin
+        table:
+          schema: public
+          name: store
+  - name: vendors
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: public
+          name: vendor
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - avatar
+      - created_at
+      - email
+      - full_name
+      - id
+      filter: {}
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - avatar
+      - email
+      - full_name
+      filter:
+        id:
+          _eq: X-Hasura-User-Id-Internal
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        id:
+          _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: user_current
+  select_permissions:
+  - role: user
+    permission:
+      columns: []
+      filter:
+        id:
+          _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: vendor
+  object_relationships:
+  - name: store
+    using:
+      foreign_key_constraint_on: store_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+  array_relationships:
+  - name: vendor_current
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: vendor_current
+        column_mapping:
+          user_id: user_id
+  insert_permissions:
+  - role: user
+    permission:
+      check:
+        store:
+          admin:
+            _eq: X-Hasura-User-Id-Internal
+      set:
+        user_id: x-hasura-Internal-Id
+      columns:
+      - store_id
+      - user_id
+      backend_only: false
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - id
+      - user_id
+      - store_id
+      - created_at
+      filter: {}
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: vendor_current
+  object_relationships:
+  - name: store
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: store
+        column_mapping:
+          store_id: id
+  select_permissions:
+  - role: user
+    permission:
+      columns: []
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id-Internal

@@ -12,19 +12,12 @@ Setting up **Hasura**
 1. `cp .env.dist .env`
 2. Define `HASURA_GRAPHQL_JWT_SECRET` via https://hasura.io/jwt-config/ 
 3. Define `HASURA_GRAPHQL_ADMIN_SECRET` to a nice long password (save it)
+4. `docker-compose up`
 
-Setting up **ngrok**
+Setting up **Hasura CLI**
 
-1.  `./ngrok http 8080`
-2. Grab the two rules from `AUTH0_RULES.md` and apply them to your Auth0 account (don't forget to change the things that need to be changed)
-
-Setting up **frontend**
-
-1. Add a API to your Auth0 app name it `hasura`
-2. Define variables in `frontend/.env` from Auth0
-3. `cd frontend && yarn`
-4. `yarn start`
-
+1. `./console.sh`
+2. Copy the `ngrok` url and paste it in your JWT aquire rule
 
 Visit `http://localhost:3000/` to see the app
 

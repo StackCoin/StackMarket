@@ -7,8 +7,21 @@ services:
     - db_data:/var/lib/postgresql/data
     env_file:
       - ./.env
+  frontend:
+    container_name: stackmarket-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - './frontend:/app'
+      - '/app/node_modules'
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
+    stdin_open: true
   graphql-engine:
-    image: hasura/graphql-engine:v1.3.0.cli-migrations-v2
+    image: hasura/graphql-engine:v1.3.1
     ports:
     - "8080:8080"
     depends_on:
