@@ -1,24 +1,17 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useHistory } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import {
   Grid,
-  useDisclosure,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalCloseButton,
   ModalBody,
-  ModalFooter,
-  Image,
-  Code,
-  Box,
   Button,
   Flex,
   Text,
-  Heading,
 } from '@chakra-ui/core';
 import { gql, useQuery } from '@apollo/client';
 import Listing from './Listing';
@@ -60,7 +53,7 @@ const GET_LISTINGS = gql`
 `;
 
 const ListingView = ({ id, onReturnToListings }) => {
-  const { error, data, loading } = useQuery(GET_LISTING, { variables: { id } });
+  const { data } = useQuery(GET_LISTING, { variables: { id } });
   const {
     listing: [listing],
   } = data || { listing: [] };
@@ -79,7 +72,7 @@ const ListingView = ({ id, onReturnToListings }) => {
           <ModalBody>
             <Grid templateColumns="2fr 3fr">
               <Text as="b">Name</Text>
-              <Text> {listing.name}</Text>
+              <Text>{listing.name}</Text>
               <Text as="b">Price</Text>
               <Text>{listing.price}</Text>
               <Text as="b">Sold</Text>
@@ -96,7 +89,7 @@ const ListingView = ({ id, onReturnToListings }) => {
 
 export default function ViewListings() {
   const { id: viewingListing } = useParams();
-  const { loading, error, data } = useQuery(GET_LISTINGS);
+  const { data } = useQuery(GET_LISTINGS);
   const { listing: listings } = data || { listing: [] };
 
   const history = useHistory();

@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
 import { gql, useSubscription, useMutation } from '@apollo/client';
 import { useHistory } from 'react-router-dom';
-import UserDisplay from './UserDisplay';
 import Topbar from './Topbar';
 import Store from './Store';
 import Listing from './Listing';
 import {
-  Stack,
-  Avatar,
-  AvatarBadge,
+  Alert,
+  AlertIcon,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -33,29 +30,27 @@ import {
 } from '@chakra-ui/core';
 
 const GET_DASHBOARD = gql`
-  subscription {
-    vendor_current {
-      store {
-        id
-        name
-        listing_aggregate {
-          aggregate {
-            count
-          }
+  query {
+    store_admin_current {
+      id
+      name
+      listing_aggregate {
+        aggregate {
+          count
         }
-        vendor {
-          user {
-            id
-            full_name
-            created_at
-          }
-        }
-        listing {
-          name
+      }
+      vendor {
+        user {
           id
-          price
-          sold
+          full_name
+          created_at
         }
+      }
+      listing {
+        name
+        id
+        price
+        sold
       }
     }
   }
@@ -93,26 +88,154 @@ const DELETE_STORE = gql`
   }
 `;
 
-export default function Dashboard() {
-  const { user, isLoading } = useAuth0();
+function Stores({ stores }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { loading, error, data } = useSubscription(GET_DASHBOARD);
-  const [addStore, { data: store }] = useMutation(CREATE_STORE);
+  const [addStore] = useMutation(CREATE_STORE);
   const [deleteStore] = useMutation(DELETE_STORE);
   const [editStore] = useMutation(EDIT_STORE);
-  const [currentStore, setCurrentStore] = useState();
-  const vendors = data?.vendor_current || [];
+  const [storeOpened, setStoreOpened] = useState();
 
   const history = useHistory();
 
-  useEffect(() => {
-    if (currentStore)
-      editStore({
-        variables: { id: currentStore.id, name: currentStore.name },
-      });
-  }, [editStore, currentStore]);
+  const isCurrentStoreNew = !stores.find(
+    (store) => store.id === storeOpened?.id
+  );
 
-  console.log(vendors);
+  useEffect(() => {
+    if (storeOpened) {
+      if (!isCurrentStoreNew) {
+        editStore({
+          variables: { id: storeOpened.id, name: storeOpened.name },
+        });
+      }
+    }
+  }, [editStore, storeOpened]);
+
+  return (
+    <>
+      <Flex pb={3} pr={3} pl={3} justifyContent="flex-end" wrap="wrap">
+        <Button
+          onClick={() => {
+            onOpen();
+            setStoreOpened({ name: 'New Store' });
+          }}
+          variantColor="green"
+          leftIcon="plus-square"
+        >
+          New
+        </Button>
+      </Flex>
+      {stores.length ? (
+        <Flex style={{ gap: '1rem' }} justifyContent="center" wrap="wrap">
+          {stores.map((store) => (
+            <Store
+              key={store.id}
+              {...store}
+              onEditClick={() => {
+                onOpen();
+                setStoreOpened(store);
+              }}
+              onClick={() => history.push(`/store/${store.id}`)}
+            />
+          ))}
+        </Flex>
+      ) : (
+        <Flex
+          pb={3}
+          pr={3}
+          pl={3}
+          style={{ gap: '1rem' }}
+          justifyContent="space-around"
+          wrap="wrap"
+        >
+          <Alert p={5} status="warning">
+            <AlertIcon />
+            You don't own any stores.
+          </Alert>
+        </Flex>
+      )}
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Store</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {storeOpened && (
+              <Grid templateColumns="2fr 3fr">
+                <Text as="b">Name</Text>
+                <Editable
+                  onSubmit={(name) =>
+                    setStoreOpened({ ...storeOpened, name: name })
+                  }
+                  defaultValue={storeOpened.name}
+                >
+                  <EditablePreview />
+                  <EditableInput />
+                </Editable>
+                {/*<Text as="b">Vendors</Text>
+              <Text></Text>*/}
+                <ModalFooter>
+                  {isCurrentStoreNew ? (
+                    <Button
+                      onClick={() => {
+                        onClose();
+                        addStore({ variables: { name: storeOpened.name } });
+                      }}
+                      variantColor="green"
+                      leftIcon="plus-square"
+                    >
+                      Submit
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        onClose();
+                        deleteStore({ variables: { id: storeOpened.id } });
+                      }}
+                      size="sm"
+                      variantColor="red"
+                      leftIcon="delete"
+                    >
+                      Delete Store
+                    </Button>
+                  )}
+                </ModalFooter>
+              </Grid>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </>
+  );
+}
+
+function Listings({ stores }) {
+  return (
+    <Flex
+      pb={3}
+      pr={3}
+      pl={3}
+      style={{ gap: '1rem' }}
+      justifyContent="space-around"
+      wrap="wrap"
+    >
+      {stores.find((store) => store.listing.length) ? (
+        stores.map(({ listing }) =>
+          listing.map((value) => <Listing {...value} />)
+        )
+      ) : (
+        <Alert p={5} status="warning">
+          <AlertIcon />
+          There aren't any listings in any of your stores.
+        </Alert>
+      )}
+    </Flex>
+  );
+}
+
+export default function Dashboard() {
+  const { data, error } = useSubscription(GET_DASHBOARD);
+  const stores = data?.store_admin_current || [];
 
   return (
     <Flex
@@ -130,102 +253,13 @@ export default function Dashboard() {
 
         <TabPanels mt={5}>
           <TabPanel>
-            <Flex
-              pb={3}
-              pr={3}
-              pl={3}
-              justifyContent="flex-end"
-              wrap="wrap"
-            >
-              <Button
-                onClick={() => addStore({ variables: { name: 'Hello World' } })}
-                variantColor="green"
-                leftIcon="plus-square"
-              >
-                Create Store
-              </Button>
-            </Flex>
-            <Flex style={{ gap: '1rem' }} justifyContent="center" wrap="wrap">
-              {vendors.map(({ store }) => (
-                <Store
-                  {...store}
-                  onClick={() => {
-                    onOpen();
-                    setCurrentStore(store);
-                  }}
-                />
-              ))}
-            </Flex>
+            <Stores stores={stores} />
           </TabPanel>
           <TabPanel>
-            <Flex
-              pb={3}
-              pr={3}
-              pl={3}
-              justifyContent="flex-end"
-              wrap="wrap"
-            >
-              <Button
-                onClick={() => addStore({ variables: { name: 'Hello World' } })}
-                variantColor="green"
-                leftIcon="plus-square"
-              >
-                Create Store
-              </Button>
-            </Flex>
-            <Flex
-              pb={3}
-              pr={3}
-              pl={3}
-              style={{ gap: '1rem' }}
-              justifyContent="space-around"
-              wrap="wrap"
-            >
-              {vendors.map(({ listing }) =>
-                listing.map((value) => <Listing {...value} />)
-              )}
-            </Flex>
+            <Listings stores={stores} />
           </TabPanel>
         </TabPanels>
       </Tabs>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Store</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {currentStore && (
-              <Grid templateColumns="2fr 3fr">
-                <Text as="b">Name</Text>
-                <Editable
-                  onSubmit={(name) =>
-                    setCurrentStore({ ...currentStore, name })
-                  }
-                  defaultValue={currentStore.name}
-                >
-                  <EditablePreview />
-                  <EditableInput />
-                </Editable>
-                <Text as="b">Vendors</Text>
-                <Text></Text>
-                <ModalFooter>
-                  <Button
-                    onClick={() => {
-                      onClose();
-                      deleteStore({ variables: { id: currentStore.id } });
-                    }}
-                    size="sm"
-                    variantColor="red"
-                    leftIcon="delete"
-                  >
-                    Delete Store
-                  </Button>
-                </ModalFooter>
-              </Grid>
-            )}
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </Flex>
   );
 }

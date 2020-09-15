@@ -27,9 +27,13 @@
   - role: user
     permission:
       check:
-        store:
-          vendor_current:
-            user_id:
+        _or:
+        - store:
+            vendor_current:
+              user_id:
+                _eq: X-Hasura-User-Id-Internal
+        - store:
+            admin:
               _eq: X-Hasura-User-Id-Internal
       columns:
       - name
@@ -61,9 +65,13 @@
       - sold_at
       - store_id
       filter:
-        store:
-          vendor_current:
-            user_id:
+        _or:
+        - store:
+            vendor_current:
+              user_id:
+                _eq: X-Hasura-User-Id-Internal
+        - store:
+            admin:
               _eq: X-Hasura-User-Id-Internal
       check: null
   delete_permissions:
@@ -71,9 +79,8 @@
     permission:
       filter:
         store:
-          vendor_current:
-            user_id:
-              _eq: X-Hasura-User-Id-Internal
+          admin:
+            _eq: X-Hasura-User-Id-Internal
 - table:
     schema: public
     name: store
@@ -90,7 +97,7 @@
         column_mapping:
           id: store_id
   array_relationships:
-  - name: listings
+  - name: listing
     using:
       foreign_key_constraint_on:
         column: store_id
@@ -104,7 +111,7 @@
         table:
           schema: public
           name: tag
-  - name: vendors
+  - name: vendor
     using:
       foreign_key_constraint_on:
         column: store_id
@@ -125,6 +132,7 @@
   - role: user
     permission:
       columns:
+      - admin
       - created_at
       - id
       - name
@@ -136,17 +144,51 @@
       columns:
       - name
       filter:
-        vendor_current:
-          user_id:
+        _or:
+        - admin:
             _eq: X-Hasura-User-Id-Internal
+        - vendor_current:
+            user_id:
+              _eq: X-Hasura-User-Id-Internal
       check: null
   delete_permissions:
   - role: user
     permission:
       filter:
-        vendor_current:
-          user_id:
-            _eq: X-Hasura-User-Id-Internal
+        admin:
+          _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: store_admin_current
+  array_relationships:
+  - name: listing
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: listing
+        column_mapping:
+          id: store_id
+  - name: vendor
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: vendor
+        column_mapping:
+          id: store_id
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - admin
+      - created_at
+      - id
+      - name
+      filter:
+        admin:
+          _eq: X-Hasura-User-Id-Internal
+      allow_aggregations: true
 - table:
     schema: public
     name: tag
@@ -213,7 +255,13 @@
   select_permissions:
   - role: user
     permission:
-      columns: []
+      columns:
+      - id
+      - auth0_id
+      - full_name
+      - created_at
+      - avatar
+      - email
       filter:
         id:
           _eq: X-Hasura-User-Id-Internal
@@ -279,7 +327,11 @@
   select_permissions:
   - role: user
     permission:
-      columns: []
+      columns:
+      - created_at
+      - id
+      - store_id
+      - user_id
       filter:
         user_id:
           _eq: X-Hasura-User-Id-Internal

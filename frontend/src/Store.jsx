@@ -1,18 +1,25 @@
 import React from 'react';
-import { AvatarGroup, Avatar, Tag, Text, Flex } from '@chakra-ui/core';
+import { Button, AvatarGroup, Avatar, Tag, Text, Flex } from '@chakra-ui/core';
 
 export default ({
   id,
   name,
   vendor,
   onClick,
+  onEditClick,
   listing_aggregate: {
     aggregate: { count: listingCount },
   },
 }) => {
+  const stopPropOnEditDangerously = (event) => {
+    event.stopPropagation();
+    onEditClick(event);
+  };
   return (
     <Flex
-      as="button"
+      as="div"
+      role="button"
+      tabIndex={0}
       p={4}
       onClick={onClick}
       minW="sm"
@@ -28,6 +35,17 @@ export default ({
         <Text fontWeight="800">{name}</Text>
       </Flex>
       <Flex alignItems="end" justifyContent="space-between">
+        {onEditClick && (
+          <Button
+            onClick={stopPropOnEditDangerously}
+            leftIcon="settings"
+            variantColor="teal"
+            variant="outline"
+            size="xs"
+          >
+            Edit
+          </Button>
+        )}
         <Flex h="48px">
           {vendor.length > 1 && (
             <AvatarGroup size="md" max={3}>
