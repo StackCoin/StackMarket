@@ -1,20 +1,27 @@
-version: '3.6'
+version: '3'
+
 services:
   postgres:
+    container_name: stackmarket-postgres
     image: postgres:12
     restart: always
     volumes:
-    - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     env_file:
       - ./.env
-  s3_store:
+
+  s3-store:
+    container_name: stackmarket-s3-store
+    restart: always
     image: ecumene/stackupload:latest
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     env_file:
       - ./stackupload/.env
+
   frontend:
     container_name: stackmarket-frontend
+    restart: always
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -22,19 +29,22 @@ services:
       - './frontend:/app'
       - '/app/node_modules'
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     env_file:
       - ./frontend/.env
     stdin_open: true
+
   graphql-engine:
+    container_name: stackmarket-graphql-engine
+    restart: always
     image: hasura/graphql-engine:v1.3.1
     ports:
-    - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
-    - "postgres"
-    restart: always
+      - "postgres"
     env_file:
       - ./.env
+
 volumes:
   db_data:
 
