@@ -93,9 +93,6 @@ export default function ViewListings() {
   const { listing: listings } = data || { listing: [] };
 
   const history = useHistory();
-  const handleShopClick = () => {
-    history.push('dashboard');
-  };
 
   const handleListingClick = (id) => {
     if (!viewingListing) {

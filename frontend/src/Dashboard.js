@@ -109,7 +109,7 @@ function Stores({ stores }) {
         });
       }
     }
-  }, [editStore, storeOpened]);
+  }, [editStore, isCurrentStoreNew, storeOpened]);
 
   return (
     <>
@@ -164,9 +164,7 @@ function Stores({ stores }) {
               <Grid templateColumns="2fr 3fr">
                 <Text as="b">Name</Text>
                 <Editable
-                  onSubmit={(name) =>
-                    setStoreOpened({ ...storeOpened, name: name })
-                  }
+                  onSubmit={(name) => setStoreOpened({ ...storeOpened, name })}
                   defaultValue={storeOpened.name}
                 >
                   <EditablePreview />
@@ -234,7 +232,7 @@ function Listings({ stores }) {
 }
 
 export default function Dashboard() {
-  const { data, error } = useSubscription(GET_DASHBOARD);
+  const { data } = useSubscription(GET_DASHBOARD);
   const stores = data?.store_admin_current || [];
 
   return (

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import Topbar from './Topbar';
 import {
+  Box,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -35,6 +36,7 @@ import {
 import Store from './Store';
 import Listing from './Listing';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
+import { useDropzone } from 'react-dropzone';
 
 const GET_STORES = gql`
   query {
@@ -110,19 +112,68 @@ function Listings({ listings }) {
   );
 }
 
+const toBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+
+function ImageDropzone() {
+  const [files, setFiles] = useState([]);
+  const onDrop = useCallback(
+    (acceptedFiles) =>
+      Promise.all(
+        acceptedFiles.map(async (file) =>
+          setFiles([...files, await toBase64(file)])
+        )
+      ),
+    [files]
+  );
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
+  return (
+    <div {...getRootProps()}>
+      <input {...getInputProps()} />
+      <Box
+        mt={5}
+        cursor="pointer"
+        display="flex"
+        bg="blue.400"
+        borderRadius={8}
+        w="100%"
+        minHeight={200}
+        justifyContent="center"
+        alignItems="center"
+        color="white"
+      >
+        {files.length
+          ? files.map((img) => <img width={150} src={img} />)
+          : isDragActive
+          ? "Gimmie Images! I'm Hungry 🤤"
+          : '📁 Upload or Drop Images'}
+      </Box>
+    </div>
+  );
+}
+
 export default function ViewListings() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { id } = useParams();
+
+  const [name, setName] = useState('New Listing');
+  const [price, setPrice] = useState(10);
+
   const { data: storesData } = useQuery(GET_STORES);
   const { data: storeData } = useSubscription(GET_STORE, { variables: { id } });
   const [addListing] = useMutation(CREATE_LISTING);
-  const history = useHistory();
+
+  const [store] = storeData?.store || [{ listing: [] }];
   const stores = storesData?.stores || [];
   const myStores = storesData?.my_stores || [];
-  const [store] = storeData?.store || [{ listing: [] }];
 
-  const [name, setName] = useState("New Listing");
-  const [price, setPrice] = useState(10);
+  const history = useHistory();
 
   const isAdmin = myStores.some((myStore) => myStore.id === store.id);
 
@@ -214,19 +265,23 @@ export default function ViewListings() {
                   <NumberDecrementStepper />
                 </NumberInputStepper>
               </NumberInput>
-              <ModalFooter>
-                <Button
-                  onClick={() => {
-                    onClose();
-                    addListing({ variables: {name, price, store_id: store.id} });
-                  }}
-                  variantColor="green"
-                  leftIcon="plus-square"
-                >
-                  Submit
-                </Button>
-              </ModalFooter>
+              <Text as="b">Images</Text>
             </Grid>
+            <ImageDropzone />
+            <ModalFooter>
+              <Button
+                onClick={() => {
+                  onClose();
+                  addListing({
+                    variables: { name, price, store_id: store.id },
+                  });
+                }}
+                variantColor="green"
+                leftIcon="plus-square"
+              >
+                Submit
+              </Button>
+            </ModalFooter>
           </ModalBody>
         </ModalContent>
       </Modal>

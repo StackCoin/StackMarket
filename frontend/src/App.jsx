@@ -10,7 +10,7 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from '@apollo/client';
-import {onError} from '@apollo/client/link/error';
+import { onError } from '@apollo/client/link/error';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { ThemeProvider, CSSReset, Flex } from '@chakra-ui/core';
@@ -68,7 +68,7 @@ function Routing() {
 }
 
 function ApolloAuth({ children }) {
-  const { isAuthenticated, getAccessTokenSilently, isLoading, loginWithPopup } = useAuth0();
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [accessToken, setAccessToken] = useState('');
 
   // TODO: Replace with something more sensible:
@@ -80,9 +80,7 @@ function ApolloAuth({ children }) {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   const headers = isAuthenticated
-    ? {
-        Authorization: `Bearer ${accessToken}`,
-      }
+    ? { Authorization: `Bearer ${accessToken}` }
     : {};
 
   const http = new HttpLink({
@@ -104,6 +102,7 @@ function ApolloAuth({ children }) {
   });
 
   const errorHandling = onError((apolloErrors) => {
+    // eslint-disable-next-line no-console
     console.error(apolloErrors);
   });
 
@@ -117,7 +116,7 @@ function ApolloAuth({ children }) {
         );
       },
       errorHandling.concat(ws),
-      errorHandling.concat(http),
+      errorHandling.concat(http)
     ),
     cache: new InMemoryCache(),
   });
