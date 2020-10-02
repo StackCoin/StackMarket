@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   postgres:
@@ -19,6 +19,15 @@ services:
     env_file:
       - ./stackupload/.env
 
+  auth:
+    container_name: stackmarket-auth
+    restart: always
+    image: ecumene/stacklogin:latest
+    ports:
+      - "127.0.0.1:8082:8082"
+    env_file:
+      - ./stacklogin/.env
+
   frontend:
     container_name: stackmarket-frontend
     restart: always
@@ -26,8 +35,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - './frontend:/app'
-      - '/app/node_modules'
+      - "./frontend:/app"
+      - "/app/node_modules"
     ports:
       - "127.0.0.1:3000:3000"
     env_file:
@@ -47,4 +56,3 @@ services:
 
 volumes:
   db_data:
-
