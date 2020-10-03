@@ -16,9 +16,12 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { ThemeProvider, CSSReset, Flex } from '@chakra-ui/core';
 import Dashboard from './Dashboard';
 import Store from './StoreView';
+import StackLogin from './StackLogin';
 import LandingPage from './LandingPage';
 import Listings from './Listings';
 import Stack from './stack.png';
+
+export const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
 
 function Routing() {
   const { isLoading, error } = useAuth0();
@@ -62,6 +65,11 @@ function Routing() {
         <Route path="/store/:id">
           <Store />
         </Route>
+        {isDevAdmin && (
+          <Route path="/stacks">
+            <StackLogin />
+          </Route>
+        )}
       </Switch>
     </Router>
   );
@@ -81,6 +89,8 @@ function ApolloAuth({ children }) {
 
   const headers = isAuthenticated
     ? { Authorization: `Bearer ${accessToken}` }
+    : process.env.REACT_APP_HASURA_ADMIN_SECRET !== null
+    ? { 'x-hasura-admin-secret': process.env.REACT_APP_HASURA_ADMIN_SECRET }
     : {};
 
   const http = new HttpLink({
