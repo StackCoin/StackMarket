@@ -1,0 +1,9 @@
+:2015 {
+  route /sign_token {
+    reverse_proxy 127.0.0.1:8082
+  }
+  route /api/* {
+    uri strip_prefix /api
+    reverse_proxy 127.0.0.1:8080
+  }
+}

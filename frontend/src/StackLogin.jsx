@@ -18,7 +18,7 @@ const GET_USERS = gql`
   }
 `;
 
-export default function StackLogin() {
+export default function StackLogin({setAccessToken}) {
   const { data } = useQuery(GET_USERS);
   const { user } = data || { user: [] };
   const [selected, setSelected] = useState();
@@ -27,12 +27,11 @@ export default function StackLogin() {
     history.push('listings');
   };
 
-  const handlePop = () => {
-    fetch(
+  const handlePop = async () => {
+    const response = await fetch(
       `${process.env.REACT_APP_JWT_SIGN_URL}?sub=stackmarket&iat=99999999999&allowed_roles=user&default_role=user&user_id=${selected.value}&user_id_internal=${selected.value}`
-    )
-      .then((response) => console.log(response))
-      .then((data) => console.log(data));
+    );
+    const token = await response.text();
   };
 
   return (
@@ -85,3 +84,5 @@ export default function StackLogin() {
     </Flex>
   );
 }
+
+StackLogin.

@@ -23,7 +23,7 @@ import Stack from './stack.png';
 
 export const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
 
-function Routing() {
+function Routing({ setAccessToken }) {
   const { isLoading, error } = useAuth0();
 
   if (error) {
@@ -75,9 +75,12 @@ function Routing() {
   );
 }
 
-function ApolloAuth({ children }) {
+Routing.propTypes = {
+  setAccessToken: PropTypes.func,
+};
+
+function ApolloAuth({ children, accessToken, setAccessToken }) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
-  const [accessToken, setAccessToken] = useState('');
 
   // TODO: Replace with something more sensible:
   // https://github.com/apollographql/apollo-client/issues/2441
@@ -136,9 +139,12 @@ function ApolloAuth({ children }) {
 
 ApolloAuth.propTypes = {
   children: PropTypes.node.isRequired,
+  accessToken: PropTypes.string.isRequired,
+  setAccessToken: PropTypes.func.isRequired,
 };
 
 function App() {
+  const [accessToken, setAccessToken] = useState('');
   return (
     <ThemeProvider>
       <Auth0Provider
@@ -148,9 +154,9 @@ function App() {
         audience={process.env.REACT_APP_AUTH0_AUDIENCE}
         scope="read:current_user update:current_user_metadata"
       >
-        <ApolloAuth>
+        <ApolloAuth accessToken={accessToken} setAccessToken={setAccessToken}>
           <CSSReset />
-          <Routing />
+          <Routing setAccessToken={setAccessToken} />
         </ApolloAuth>
       </Auth0Provider>
     </ThemeProvider>
