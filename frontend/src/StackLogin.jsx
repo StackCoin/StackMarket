@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { gql, useQuery } from '@apollo/client';
+import PropTypes from 'prop-types';
 import Select from 'react-select';
 import { Button, Flex, Text, Image } from '@chakra-ui/core';
 import hubbahubba from './hubbahubba.jpg';
@@ -18,20 +19,21 @@ const GET_USERS = gql`
   }
 `;
 
-export default function StackLogin({setAccessToken}) {
+export default function StackLogin({ setAccessToken }) {
   const { data } = useQuery(GET_USERS);
   const { user } = data || { user: [] };
   const [selected, setSelected] = useState();
   const history = useHistory();
-  const handleShopClick = () => {
-    history.push('listings');
-  };
 
   const handlePop = async () => {
+    const iat = Math.floor(new Date().getTime() / 1000);
     const response = await fetch(
-      `${process.env.REACT_APP_JWT_SIGN_URL}?sub=stackmarket&iat=99999999999&allowed_roles=user&default_role=user&user_id=${selected.value}&user_id_internal=${selected.value}`
+      `${process.env.REACT_APP_JWT_SIGN_URL}?sub=stackmarket&iat=${iat}&allowed_roles=user&default_role=user&user_id=${selected.value}&user_id_internal=${selected.value}`
     );
     const token = await response.text();
+    setAccessToken(token);
+    window.localStorage.setItem('badtoken', token);
+    history.push('dashboard');
   };
 
   return (
@@ -85,4 +87,6 @@ export default function StackLogin({setAccessToken}) {
   );
 }
 
-StackLogin.
+StackLogin.propTypes = {
+  setAccessToken: PropTypes.func,
+};

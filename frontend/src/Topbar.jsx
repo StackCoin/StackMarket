@@ -1,10 +1,12 @@
 import React from 'react';
 import { Button, Flex, Text } from '@chakra-ui/core';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useHistory } from 'react-router-dom';
+import { useAuth } from './hooks';
 import UserDisplay from './UserDisplay';
+import { isDevAdmin } from './App';
 
 function LoginButton() {
-  const { loginWithRedirect } = useAuth0();
+  const { loginWithRedirect } = useAuth();
   return (
     <Button size="sm" onClick={() => loginWithRedirect()}>
       Log In
@@ -13,7 +15,13 @@ function LoginButton() {
 }
 
 export default () => {
-  const { isAuthenticated, user, logout } = useAuth0();
+  const { isAuthenticated, user, logout } = useAuth();
+  const history = useHistory();
+
+  if (isDevAdmin && !isAuthenticated) {
+    history.push('/stacks');
+  }
+
   return (
     <Flex
       w="100%"

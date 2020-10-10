@@ -6,4 +6,6 @@
     uri strip_prefix /api
     reverse_proxy 127.0.0.1:8080
   }
+
+  reverse_proxy 127.0.0.1:3000
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './App.css';
+import { useAuth } from './hooks';
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import {
@@ -24,7 +25,7 @@ import Stack from './stack.png';
 export const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
 
 function Routing({ setAccessToken }) {
-  const { isLoading, error } = useAuth0();
+  const { isLoading, error } = useAuth();
 
   if (error) {
     return (
@@ -67,7 +68,7 @@ function Routing({ setAccessToken }) {
         </Route>
         {isDevAdmin && (
           <Route path="/stacks">
-            <StackLogin />
+            <StackLogin setAccessToken={setAccessToken} />
           </Route>
         )}
       </Switch>
@@ -76,8 +77,22 @@ function Routing({ setAccessToken }) {
 }
 
 Routing.propTypes = {
-  setAccessToken: PropTypes.func,
+  setAccessToken: PropTypes.func.isRequired,
 };
+
+function getAuthHeaders(isAuthenticated, accessToken, badToken) {
+  if (isAuthenticated) {
+    return { Authorization: `Bearer ${accessToken}` };
+  }
+
+  if (process.env.REACT_APP_HASURA_ADMIN_SECRET !== null && !badToken) {
+    return {
+      'x-hasura-admin-secret': process.env.REACT_APP_HASURA_ADMIN_SECRET,
+    };
+  }
+
+  return { Authorization: `Bearer ${badToken}` };
+}
 
 function ApolloAuth({ children, accessToken, setAccessToken }) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -90,11 +105,8 @@ function ApolloAuth({ children, accessToken, setAccessToken }) {
     }
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  const headers = isAuthenticated
-    ? { Authorization: `Bearer ${accessToken}` }
-    : process.env.REACT_APP_HASURA_ADMIN_SECRET !== null
-    ? { 'x-hasura-admin-secret': process.env.REACT_APP_HASURA_ADMIN_SECRET }
-    : {};
+  const badToken = window.localStorage.getItem('badtoken');
+  const headers = getAuthHeaders(isAuthenticated, accessToken, badToken);
 
   const http = new HttpLink({
     uri: process.env.REACT_APP_API_URL,
