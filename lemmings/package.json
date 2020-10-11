@@ -1,0 +1,25 @@
+{
+  "name": "lemmings",
+  "version": "1.0.0",
+  "description": "generate stackmarket test data",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --exec babel-node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ecumene",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/node": "^7.10.5",
+    "eslint": "^7.11.0",
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "@babel/preset-env": "^7.11.5",
+    "dotenv": "^8.2.0",
+    "faker": "^5.1.0",
+    "graphql": "^15.3.0",
+    "graphql-request": "^3.1.0"
+  }
+}
