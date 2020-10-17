@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import Topbar from './Topbar';
 import {
@@ -10,6 +10,7 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
+  Image,
   Grid,
   Text,
   Editable,
@@ -34,6 +35,7 @@ import {
   TabPanel,
 } from '@chakra-ui/core';
 import Store from './Store';
+import PropTypes from 'prop-types';
 import Listing from './Listing';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 import { useDropzone } from 'react-dropzone';
@@ -120,43 +122,68 @@ const toBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-function ImageDropzone() {
+function ImageDropzone({ setIsUploading }) {
   const [files, setFiles] = useState([]);
   const onDrop = useCallback(
-    (acceptedFiles) =>
-      Promise.all(
-        acceptedFiles.map(async (file) =>
-          setFiles([...files, await toBase64(file)])
-        )
-      ),
+    async (acceptedFiles) => {
+      const acceptedFilesAsBase64 = await Promise.all(
+        acceptedFiles.map(async (file) => await toBase64(file))
+      );
+      setFiles([...files, ...acceptedFilesAsBase64]);
+      setIsUploading(true);
+    },
     [files]
   );
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
+  useEffect(
+    () =>
+      (async () => {
+        console.log('upload');
+      })(),
+    []
+  );
+
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} />
-      <Box
-        mt={5}
-        cursor="pointer"
-        display="flex"
-        bg="blue.400"
-        borderRadius={8}
-        w="100%"
-        minHeight={200}
-        justifyContent="center"
-        alignItems="center"
-        color="white"
-      >
-        {files.length
-          ? files.map((img) => <img width={150} src={img} />)
-          : isDragActive
-          ? "Gimmie Images! I'm Hungry 🤤"
-          : '📁 Upload or Drop Images'}
+      <Box cursor="pointer" borderRadius={8}>
+        {files.length ? (
+          <Box
+            display="flex"
+            direction="row"
+            overflow="auto"
+            minHeight={200}
+            borderRadius={8}
+          >
+            {files.map((img) => (
+              <Image width="auto" height={200} src={img} />
+            ))}
+          </Box>
+        ) : (
+          <Box
+            display="flex"
+            bg="blue.400"
+            color="white"
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            minHeight={200}
+            borderRadius={8}
+          >
+            {isDragActive
+              ? "Gimmie Images! I'm Hungry 🤤"
+              : '📁 Upload or Drop Images'}
+          </Box>
+        )}
       </Box>
     </div>
   );
 }
+
+ImageDropzone.propTypes = {
+  setIsUploading: PropTypes.func,
+};
 
 export default function ViewListings() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -164,6 +191,7 @@ export default function ViewListings() {
 
   const [name, setName] = useState('New Listing');
   const [price, setPrice] = useState(10);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: storesData } = useQuery(GET_STORES);
   const { data: storeData } = useSubscription(GET_STORE, { variables: { id } });
@@ -267,7 +295,7 @@ export default function ViewListings() {
               </NumberInput>
               <Text as="b">Images</Text>
             </Grid>
-            <ImageDropzone />
+            <ImageDropzone setIsUploading={setIsUploading} />
             <ModalFooter>
               <Button
                 onClick={() => {
@@ -276,6 +304,7 @@ export default function ViewListings() {
                     variables: { name, price, store_id: store.id },
                   });
                 }}
+                isDisabled={isUploading}
                 variantColor="green"
                 leftIcon="plus-square"
               >
