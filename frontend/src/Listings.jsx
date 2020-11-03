@@ -13,17 +13,9 @@ import {
   Flex,
   Text,
 } from '@chakra-ui/core';
+import Topbar from './Topbar';
 import { gql, useQuery } from '@apollo/client';
 import Listing from './Listing';
-
-function LoginButton() {
-  const { loginWithRedirect } = useAuth0();
-  return (
-    <Button size="sm" onClick={() => loginWithRedirect()}>
-      Log In
-    </Button>
-  );
-}
 
 const GET_LISTING = gql`
   query($id: Int!) {
@@ -39,12 +31,19 @@ const GET_LISTING = gql`
 
 const GET_LISTINGS = gql`
   query MyQuery {
-    listing(where: { sold: { _eq: false } }) {
+    listing {
       id
       name
       price
       sold
       created_at
+      resources {
+        resource {
+          image {
+            id
+          }
+        }
+      }
       store {
         name
       }
@@ -113,21 +112,11 @@ export default function ViewListings() {
       justifyContent="space-around"
       alignItems="center"
     >
-      <Flex
-        w="100%"
-        px={5}
-        py={4}
-        justifyContent="space-between"
-        alignItems="center"
-      >
-        <Text fontSize="xl" fontWeight="900" as="em">
-          stackmarket
-        </Text>
-        <LoginButton />
-      </Flex>
+      <Topbar />
       <Flex
         p={5}
         w="100%"
+        style={{ gap: '1rem' }}
         justifyContent="space-between"
         alignItems="center"
         direction="column"
@@ -135,10 +124,12 @@ export default function ViewListings() {
         {listings.map((listing) => (
           <Listing {...listing} onClick={(ev, id) => handleListingClick(id)} />
         ))}
-        <ListingView
-          onReturnToListings={handleReturnToListings}
-          id={viewingListing}
-        />
+        {viewingListing && (
+          <ListingView
+            onReturnToListings={handleReturnToListings}
+            id={viewingListing}
+          />
+        )}
       </Flex>
     </Flex>
   );

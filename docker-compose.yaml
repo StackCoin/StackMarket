@@ -10,8 +10,18 @@ services:
     env_file:
       - ./.env
 
-  s3-store:
-    container_name: stackmarket-s3-store
+  s3-minio:
+    container_name: stackmarket-minio
+    restart: always
+    image: minio/minio:latest
+    command: minio server /data
+    ports:
+      - "127.0.0.1:9000:9000"
+    env_file:
+      - ./stackupload/.env
+
+  upload:
+    container_name: stackmarket-upload
     restart: always
     image: ecumene/stackupload:latest
     ports:

@@ -1,0 +1,1 @@
+CREATE TABLE "public"."listing_resource"("resource_name" text NOT NULL, "listing_id" integer NOT NULL, PRIMARY KEY ("resource_name") , FOREIGN KEY ("resource_name") REFERENCES "public"."resource"("name") ON UPDATE restrict ON DELETE restrict, FOREIGN KEY ("listing_id") REFERENCES "public"."listing"("id") ON UPDATE restrict ON DELETE restrict, UNIQUE ("resource_name"));

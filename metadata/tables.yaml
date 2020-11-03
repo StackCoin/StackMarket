@@ -1,5 +1,46 @@
 - table:
     schema: public
+    name: image
+  object_relationships:
+  - name: resource
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: resource
+        column_mapping:
+          id: name
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+      - id
+      backend_only: false
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - id
+      filter: {}
+  update_permissions:
+  - role: user
+    permission:
+      columns: []
+      filter:
+        resource:
+          uploaded_by:
+            _eq: X-Hasura-User-Id-Internal
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        resource:
+          uploaded_by:
+            _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
     name: label
   object_relationships:
   - name: listing
@@ -23,6 +64,13 @@
         table:
           schema: public
           name: label
+  - name: resources
+    using:
+      foreign_key_constraint_on:
+        column: listing_id
+        table:
+          schema: public
+          name: listing_resource
   insert_permissions:
   - role: user
     permission:
@@ -81,6 +129,132 @@
         store:
           admin:
             _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: listing_resource
+  object_relationships:
+  - name: listing
+    using:
+      foreign_key_constraint_on: listing_id
+  - name: resource
+    using:
+      foreign_key_constraint_on: resource_name
+  insert_permissions:
+  - role: user
+    permission:
+      check:
+        _and:
+        - resource:
+            uploaded_by:
+              _eq: X-Hasura-User-Id-Internal
+        - _or:
+          - listing:
+              store:
+                vendor_current:
+                  user_id:
+                    _eq: X-Hasura-User-Id-Internal
+          - listing:
+              store:
+                admin:
+                  _eq: X-Hasura-User-Id-Internal
+      columns:
+      - listing_id
+      - resource_name
+      backend_only: false
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - listing_id
+      - resource_name
+      filter: {}
+  update_permissions:
+  - role: user
+    permission:
+      columns: []
+      filter:
+        _and:
+        - resource:
+            uploaded_by:
+              _eq: X-Hasura-User-Id-Internal
+        - _or:
+          - listing:
+              store:
+                vendor_current:
+                  user_id:
+                    _eq: X-Hasura-User-Id-Internal
+          - listing:
+              store:
+                admin:
+                  _eq: X-Hasura-User-Id-Internal
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _and:
+        - resource:
+            uploaded_by:
+              _eq: X-Hasura-User-Id-Internal
+        - _or:
+          - listing:
+              store:
+                vendor_current:
+                  user_id:
+                    _eq: X-Hasura-User-Id-Internal
+          - listing:
+              store:
+                admin:
+                  _eq: X-Hasura-User-Id-Internal
+- table:
+    schema: public
+    name: resource
+  object_relationships:
+  - name: image
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: image
+        column_mapping:
+          name: id
+  insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        uploaded_by: x-hasura-User-Id-Internal
+      columns:
+      - name
+      - uploaded_at
+      - uploaded_by
+      backend_only: false
+  select_permissions:
+  - role: user
+    permission:
+      columns:
+      - id
+      - name
+      - uploaded_at
+      - uploaded_by
+      filter: {}
+  update_permissions:
+  - role: user
+    permission:
+      columns:
+      - name
+      - uploaded_at
+      - uploaded_by
+      filter:
+        uploaded_by:
+          _eq: X-Hasura-User-Id-Internal
+      check: null
+  delete_permissions:
+  - role: user
+    permission:
+      filter:
+        uploaded_by:
+          _eq: X-Hasura-User-Id-Internal
 - table:
     schema: public
     name: store
@@ -292,7 +466,7 @@
           admin:
             _eq: X-Hasura-User-Id-Internal
       set:
-        user_id: x-hasura-Internal-Id
+        user_id: x-hasura-User-Id-Internal
       columns:
       - store_id
       - user_id

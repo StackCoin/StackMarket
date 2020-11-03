@@ -24,6 +24,7 @@ import {
   ModalFooter,
   Alert,
   AlertIcon,
+  useToast,
   Tag,
   Heading,
   Flex,
@@ -39,6 +40,7 @@ import PropTypes from 'prop-types';
 import Listing from './Listing';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 import { useDropzone } from 'react-dropzone';
+import upload from './s3util';
 
 const GET_STORES = gql`
   query {
@@ -80,9 +82,19 @@ const GET_STORE = gql`
 `;
 
 const CREATE_LISTING = gql`
-  mutation($name: String!, $price: Int!, $store_id: Int!) {
+  mutation(
+    $name: String!
+    $price: Int!
+    $store_id: Int!
+    $resources: [listing_resource_insert_input!]! = {}
+  ) {
     insert_listing(
-      objects: { name: $name, price: $price, store_id: $store_id }
+      objects: {
+        name: $name
+        price: $price
+        store_id: $store_id
+        resources: { data: $resources }
+      }
     ) {
       returning {
         id
@@ -122,33 +134,77 @@ const toBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-function ImageDropzone({ setIsUploading }) {
+function ImageDropzone({
+  isUploading,
+  setIsUploading,
+  completedFiles,
+  setCompletedFiles,
+}) {
   const [files, setFiles] = useState([]);
+  const toast = useToast();
   const onDrop = useCallback(
     async (acceptedFiles) => {
-      const acceptedFilesAsBase64 = await Promise.all(
-        acceptedFiles.map(async (file) => await toBase64(file))
-      );
-      setFiles([...files, ...acceptedFilesAsBase64]);
+      setFiles([
+        ...files,
+        ...(await Promise.all(
+          acceptedFiles.map(async (file) => await toBase64(file))
+        )),
+      ]);
       setIsUploading(true);
     },
     [files]
   );
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-  useEffect(
-    () =>
+  useEffect(() => {
+    if (isUploading && files.length) {
       (async () => {
-        console.log('upload');
-      })(),
-    []
-  );
+        let newCompletedFiles = completedFiles;
+        await Promise.all(
+          files.map(async (file) => {
+            try {
+              const { specialName, uploading } = await upload({
+                method: 'PUT',
+                body: file,
+              });
+              const { ok, statusText } = await uploading;
+              if (!ok) {
+                throw new Error(statusText);
+              }
+              newCompletedFiles = [...newCompletedFiles, { specialName, file }];
+            } catch ({ message }) {
+              toast({
+                title: "Couldn't upload file",
+                description: `${message}`,
+                status: 'error',
+                isClosable: true,
+                duration: 9000,
+              });
+            }
+          })
+        );
+        setFiles([]);
+        setCompletedFiles(newCompletedFiles);
+        setIsUploading(false);
+      })();
+    }
+  }, [isUploading, files, completedFiles]);
+
+  const Message = ({ isDragActive, isUploading }) => {
+    if (isDragActive) {
+      return "Gimmie Images! I'm Hungry 🤤";
+    } else if (isUploading) {
+      return 'Uploading...';
+    } else {
+      return '📁 Upload or Drop Images';
+    }
+  };
 
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} />
       <Box cursor="pointer" borderRadius={8}>
-        {files.length ? (
+        {completedFiles.length ? (
           <Box
             display="flex"
             direction="row"
@@ -156,8 +212,8 @@ function ImageDropzone({ setIsUploading }) {
             minHeight={200}
             borderRadius={8}
           >
-            {files.map((img) => (
-              <Image width="auto" height={200} src={img} />
+            {completedFiles.map(({ file }, index) => (
+              <Image key={index} width="auto" height={200} src={file} />
             ))}
           </Box>
         ) : (
@@ -171,9 +227,7 @@ function ImageDropzone({ setIsUploading }) {
             minHeight={200}
             borderRadius={8}
           >
-            {isDragActive
-              ? "Gimmie Images! I'm Hungry 🤤"
-              : '📁 Upload or Drop Images'}
+            <Message isDragActive={isDragActive} isUploading={isUploading} />
           </Box>
         )}
       </Box>
@@ -191,6 +245,7 @@ export default function ViewListings() {
 
   const [name, setName] = useState('New Listing');
   const [price, setPrice] = useState(10);
+  const [completedFiles, setCompletedFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: storesData } = useQuery(GET_STORES);
@@ -208,6 +263,8 @@ export default function ViewListings() {
   const handleStoreClick = (id) => {
     history.push(`/store/${id}`);
   };
+
+  console.log(completedFiles);
 
   return (
     <Flex
@@ -295,13 +352,33 @@ export default function ViewListings() {
               </NumberInput>
               <Text as="b">Images</Text>
             </Grid>
-            <ImageDropzone setIsUploading={setIsUploading} />
+            <ImageDropzone
+              isUploading={isUploading}
+              setIsUploading={setIsUploading}
+              completedFiles={completedFiles}
+              setCompletedFiles={setCompletedFiles}
+            />
             <ModalFooter>
               <Button
                 onClick={() => {
                   onClose();
                   addListing({
-                    variables: { name, price, store_id: store.id },
+                    variables: {
+                      name,
+                      price,
+                      store_id: store.id,
+                      resources: completedFiles.map(({ specialName }) => ({
+                        resource: {
+                          data: {
+                            image: {
+                              data: {
+                                id: specialName,
+                              },
+                            },
+                          },
+                        },
+                      })),
+                    },
                   });
                 }}
                 isDisabled={isUploading}
