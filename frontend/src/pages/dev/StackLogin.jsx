@@ -4,7 +4,7 @@ import { gql, useQuery } from '@apollo/client';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import { Button, Flex, Text, Image } from '@chakra-ui/core';
-import hubbahubba from './hubbahubba.jpg';
+import hubbahubba from '../../hubbahubba.jpg';
 
 const GET_USERS = gql`
   query {

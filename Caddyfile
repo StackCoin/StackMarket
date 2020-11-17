@@ -2,6 +2,10 @@
   route /sign_token {
     reverse_proxy 127.0.0.1:8082
   }
+  route /s3/* {
+    uri strip_prefix /s3
+    reverse_proxy 127.0.0.1:9000
+  }
   route /upload/* {
     uri strip_prefix /upload
     reverse_proxy 127.0.0.1:8081

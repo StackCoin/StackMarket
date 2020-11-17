@@ -1,1 +1,0 @@
-CREATE TABLE listing_image (id INT PRIMARY KEY NOT NULL, url TEXT NOT NULL, caption TEXT NOT NULL, created_on DATE NOT NULL);

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
-import Topbar from './Topbar';
+import Topbar from '../components/Topbar';
 import {
   Box,
   useDisclosure,
@@ -35,12 +35,12 @@ import {
   Tab,
   TabPanel,
 } from '@chakra-ui/core';
-import Store from './Store';
+import Store from '../components/Store';
 import PropTypes from 'prop-types';
-import Listing from './Listing';
+import Listing from '../components/Listing';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 import { useDropzone } from 'react-dropzone';
-import upload from './s3util';
+import upload from '../utils/s3util';
 
 const GET_STORES = gql`
   query {
@@ -103,7 +103,7 @@ const CREATE_LISTING = gql`
   }
 `;
 
-function Listings({ listings }) {
+function Listings({ listings, onClick }) {
   return (
     <Flex
       pb={3}
@@ -115,7 +115,9 @@ function Listings({ listings }) {
       wrap="wrap"
     >
       {listings.length ? (
-        listings.map((value) => <Listing {...value} />)
+        listings.map((value) => (
+          <Listing {...value} onClick={() => onClick(value.id)} />
+        ))
       ) : (
         <Alert p={5} status="warning">
           <AlertIcon />
@@ -125,14 +127,6 @@ function Listings({ listings }) {
     </Flex>
   );
 }
-
-const toBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
 
 function ImageDropzone({
   isUploading,
@@ -144,12 +138,7 @@ function ImageDropzone({
   const toast = useToast();
   const onDrop = useCallback(
     async (acceptedFiles) => {
-      setFiles([
-        ...files,
-        ...(await Promise.all(
-          acceptedFiles.map(async (file) => await toBase64(file))
-        )),
-      ]);
+      setFiles([...files, ...acceptedFiles]);
       setIsUploading(true);
     },
     [files]
@@ -190,7 +179,7 @@ function ImageDropzone({
     }
   }, [isUploading, files, completedFiles]);
 
-  const Message = ({ isDragActive, isUploading }) => {
+  const DropzoneMessage = ({ isDragActive, isUploading }) => {
     if (isDragActive) {
       return "Gimmie Images! I'm Hungry 🤤";
     } else if (isUploading) {
@@ -212,8 +201,13 @@ function ImageDropzone({
             minHeight={200}
             borderRadius={8}
           >
-            {completedFiles.map(({ file }, index) => (
-              <Image key={index} width="auto" height={200} src={file} />
+            {completedFiles.map(({ specialName }, index) => (
+              <Image
+                key={index}
+                width="auto"
+                height={200}
+                src={`${process.env.REACT_APP_UPLOADS_URL}/${specialName}`}
+              />
             ))}
           </Box>
         ) : (
@@ -227,7 +221,10 @@ function ImageDropzone({
             minHeight={200}
             borderRadius={8}
           >
-            <Message isDragActive={isDragActive} isUploading={isUploading} />
+            <DropzoneMessage
+              isDragActive={isDragActive}
+              isUploading={isUploading}
+            />
           </Box>
         )}
       </Box>
@@ -239,7 +236,7 @@ ImageDropzone.propTypes = {
   setIsUploading: PropTypes.func,
 };
 
-export default function ViewListings() {
+export default function StoreView() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { id } = useParams();
 
@@ -264,7 +261,9 @@ export default function ViewListings() {
     history.push(`/store/${id}`);
   };
 
-  console.log(completedFiles);
+  const handleListingClick = (id) => {
+    history.push(`/listing/${id}`);
+  };
 
   return (
     <Flex
@@ -301,7 +300,10 @@ export default function ViewListings() {
                     </Button>
                   )}
                 </Flex>
-                <Listings listings={store.listing} />
+                <Listings
+                  listings={store.listing}
+                  onClick={handleListingClick}
+                />
               </TabPanel>
             </TabPanels>
           </Tabs>

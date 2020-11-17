@@ -1,1 +1,0 @@
-CREATE TABLE "public"."image"("id" text NOT NULL, "uploaded_at" date NOT NULL DEFAULT now(), "uploaded_user_id" integer NOT NULL, PRIMARY KEY ("id") , FOREIGN KEY ("uploaded_user_id") REFERENCES "public"."user"("id") ON UPDATE restrict ON DELETE restrict, UNIQUE ("id"));

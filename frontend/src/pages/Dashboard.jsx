@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { gql, useSubscription, useMutation } from '@apollo/client';
 import { useHistory } from 'react-router-dom';
-import Topbar from './Topbar';
-import Store from './Store';
-import Listing from './Listing';
+import Topbar from '../components/Topbar';
+import Store from '../components/Store';
+import Listing from '../components/Listing';
 import {
   Alert,
   AlertIcon,
@@ -30,7 +30,7 @@ import {
 } from '@chakra-ui/core';
 
 const GET_DASHBOARD = gql`
-  query {
+  subscription {
     store_admin_current {
       id
       name

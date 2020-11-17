@@ -1,9 +1,9 @@
 import React from 'react';
 import { Button, Flex, Text } from '@chakra-ui/core';
 import { useHistory, useLocation } from 'react-router-dom';
-import { useAuth } from './hooks';
+import { useAuth } from '../hooks';
 import UserDisplay from './UserDisplay';
-import { isDevAdmin } from './App';
+import { isDevAdmin } from '../App';
 
 function LoginButton() {
   const { loginWithRedirect } = useAuth();
@@ -35,13 +35,24 @@ export default () => {
         stackmarket
       </Text>
       <Flex>
-        {location.pathname !== '/listings' && (
-          <Button mr={3} variantColor="yellow">
-            All Listings
-          </Button>
-        )}
+        <Button
+          mr={3}
+          onClick={() => history.push('/listings')}
+          variantColor="blue"
+        >
+          All Listings
+        </Button>
         {isAuthenticated ? (
-          <UserDisplay user={user} logout={logout} />
+          <>
+            <Button
+              mr={3}
+              onClick={() => history.push('/dashboard')}
+              variantColor="yellow"
+            >
+              Your Dashboard
+            </Button>
+            <UserDisplay user={user} logout={logout} />
+          </>
         ) : (
           <LoginButton />
         )}

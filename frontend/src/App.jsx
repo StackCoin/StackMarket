@@ -15,11 +15,14 @@ import { onError } from '@apollo/client/link/error';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { ThemeProvider, CSSReset, Flex } from '@chakra-ui/core';
-import Dashboard from './Dashboard';
-import Store from './StoreView';
-import StackLogin from './StackLogin';
-import LandingPage from './LandingPage';
-import Listings from './Listings';
+import {
+  Dashboard,
+  Listings,
+  StackLogin,
+  Listing,
+  Landing,
+  Store,
+} from './pages';
 import Stack from './stack.png';
 
 export const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
@@ -55,13 +58,16 @@ function Routing({ setAccessToken }) {
     <Router>
       <Switch>
         <Route exact path="/">
-          <LandingPage />
+          <Landing />
         </Route>
         <Route exact path="/dashboard">
           <Dashboard />
         </Route>
-        <Route path="/listings/:id?">
+        <Route path="/listings/">
           <Listings />
+        </Route>
+        <Route path="/listing/:id?">
+          <Listing />
         </Route>
         <Route path="/store/:id">
           <Store />

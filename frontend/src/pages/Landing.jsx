@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import { Code, Box, Button, Flex, Text, Heading } from '@chakra-ui/core';
-import { useAuth } from './hooks';
+import { useAuth } from '../hooks';
 
 export default function LandingPage() {
   const { loginWithRedirect } = useAuth();
