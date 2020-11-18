@@ -37,9 +37,7 @@ export const useAuth = () => {
   };
 
   const { data, loading } = useQuery(CURRENT_USER);
-  const {
-    user_current: [{ avatar: picture, ...user }],
-  } = data || { user_current: [{}] };
+  const { avatar: picture, ...user } = data?.user_current[0] || {avatar: ""};
 
   if (isDevAdmin) {
     return { ...badAuth, isLoading: loading, user: { picture, ...user } };
