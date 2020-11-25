@@ -275,7 +275,7 @@ export default function StoreView() {
       alignItems="center"
     >
       <Topbar />
-      <Flex w="100%" p={5} overflow="hidden" justifyContent="space-between">
+      <Flex w="100%" flex={1} p={5} overflow="hidden" justifyContent="space-between">
         <Flex flex={1} mr={5} direction="column">
           <Heading>{store.name}</Heading>
           <Flex>
