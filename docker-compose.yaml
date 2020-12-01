@@ -11,7 +11,7 @@ services:
       - ./.env
 
   upload:
-    container_name: stackmarket-s3-store
+    container_name: stackmarket-s3-api
     restart: always
     image: ecumene/stackupload:latest
     ports:

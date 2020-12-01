@@ -12,6 +12,8 @@ import {
   TabPanel,
 } from '@chakra-ui/core';
 import Topbar from '../components/Topbar';
+import ImageGallery from 'react-image-gallery';
+import '../../node_modules/react-image-gallery/styles/css/image-gallery.css';
 
 const GET_LISTING = gql`
   query($id: Int!) {
@@ -22,6 +24,13 @@ const GET_LISTING = gql`
       sold
       store_id
       sold_at
+      resources {
+        resource {
+          image {
+            id
+          }
+        }
+      }
     }
   }
 `;
@@ -36,7 +45,7 @@ export default () => {
   const {
     listing: [listing],
   } = data || {
-    listing: [{ name: '' }],
+    listing: [{ name: '', resources: [] }],
   };
   return (
     <Flex
@@ -58,16 +67,33 @@ export default () => {
         <Flex flex={1} mr={5} direction="column">
           <Heading>{listing.name}</Heading>
           <Flex>
-            <Tag variantColor="blue">Listing</Tag>
-            <Tag variantColor="yellow">{listing.price}</Tag>
+            <Tag variantColor="blue" mr={2}>
+              Listing
+            </Tag>
+            <Tag variantColor="yellow">{listing.price} STK</Tag>
           </Flex>
           <Tabs w="100%" overflow="hidden">
             <TabList>
-              <Tab>Listings</Tab>
+              <Tab>Details</Tab>
               <Tab>Discussion</Tab>
             </TabList>
 
             <TabPanels mt={5}>
+              <TabPanel>
+                {listing.resources.length !== 0 && (
+                  <ImageGallery
+                    items={listing.resources.map(
+                      ({
+                        resource: {
+                          image: { id: imageId },
+                        },
+                      }) => ({
+                        original: `${process.env.REACT_APP_UPLOADS_URL}/${imageId}`,
+                      })
+                    )}
+                  />
+                )}
+              </TabPanel>
               <TabPanel>
                 <Flex mb={5} justifyContent="flex-end"></Flex>
               </TabPanel>

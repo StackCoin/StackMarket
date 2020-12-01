@@ -13,9 +13,7 @@ import {
   Image,
   Grid,
   Text,
-  Editable,
-  EditablePreview,
-  EditableInput,
+  Input,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
@@ -71,7 +69,7 @@ const GET_STORE = gql`
       admin
       created_at
       name
-      listing {
+      listing(order_by: {created_at: desc}) {
         id
         name
         price
@@ -281,14 +279,14 @@ export default function StoreView() {
           <Flex>
             <Tag color="blue">STORE</Tag>
           </Flex>
-          <Tabs w="100%" overflow="hidden">
+          <Tabs w="100%" overflow="hidden" display="flex" flexDirection="column">
             <TabList>
               <Tab>Listings</Tab>
               <Tab>Discussion</Tab>
             </TabList>
 
-            <TabPanels mt={5}>
-              <TabPanel>
+            <TabPanels overflow="hidden" display="flex" flexDirection="column" mt={5}>
+              <TabPanel overflow="hidden" display="flex" flexDirection="column">
                 <Flex mb={5} justifyContent="flex-end">
                   {isAdmin && (
                     <Button
@@ -308,7 +306,7 @@ export default function StoreView() {
             </TabPanels>
           </Tabs>
         </Flex>
-        <Flex direction="column">
+        <Flex overflow="hidden" direction="column">
           <Heading as="h2" size="sm">
             Other Stores
           </Heading>
@@ -334,10 +332,7 @@ export default function StoreView() {
           <ModalBody>
             <Grid gap={1} templateColumns="2fr 3fr">
               <Text as="b">Name</Text>
-              <Editable onSubmit={setName} defaultValue="New Listing">
-                <EditablePreview />
-                <EditableInput />
-              </Editable>
+              <Input onChange={(event) => setName(event.target.value)} defaultValue="New Listing"/>
               <Text as="b">Price (STK)</Text>
               <NumberInput
                 onSubmit={setPrice}
