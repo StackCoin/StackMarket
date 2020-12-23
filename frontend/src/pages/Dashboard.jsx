@@ -8,6 +8,7 @@ import {
   Alert,
   AlertIcon,
   useDisclosure,
+  Input,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -27,7 +28,9 @@ import {
   TabPanels,
   Tab,
   TabPanel,
-} from '@chakra-ui/core';
+} from '@chakra-ui/react';
+import { PlusSquareIcon, DeleteIcon } from '@chakra-ui/icons';
+import StackLoading from '../components/StackLoading';
 
 const GET_DASHBOARD = gql`
   subscription {
@@ -119,8 +122,8 @@ function Stores({ stores }) {
             onOpen();
             setStoreOpened({ name: 'New Store' });
           }}
-          variantColor="green"
-          leftIcon="plus-square"
+          colorScheme="green"
+          leftIcon={<PlusSquareIcon />}
         >
           New
         </Button>
@@ -163,13 +166,12 @@ function Stores({ stores }) {
             {storeOpened && (
               <Grid templateColumns="2fr 3fr">
                 <Text as="b">Name</Text>
-                <Editable
-                  onSubmit={(name) => setStoreOpened({ ...storeOpened, name })}
+                <Input
+                  onChange={(event) =>
+                    setStoreOpened({ ...storeOpened, name: event.target.value })
+                  }
                   defaultValue={storeOpened.name}
-                >
-                  <EditablePreview />
-                  <EditableInput />
-                </Editable>
+                />
                 {/*<Text as="b">Vendors</Text>
               <Text></Text>*/}
                 <ModalFooter>
@@ -179,8 +181,8 @@ function Stores({ stores }) {
                         onClose();
                         addStore({ variables: { name: storeOpened.name } });
                       }}
-                      variantColor="green"
-                      leftIcon="plus-square"
+                      colorScheme="green"
+                      leftIcon={<PlusSquareIcon />}
                     >
                       Submit
                     </Button>
@@ -191,8 +193,8 @@ function Stores({ stores }) {
                         deleteStore({ variables: { id: storeOpened.id } });
                       }}
                       size="sm"
-                      variantColor="red"
-                      leftIcon="delete"
+                      colorScheme="red"
+                      leftIcon={<DeleteIcon />}
                     >
                       Delete Store
                     </Button>
@@ -207,7 +209,7 @@ function Stores({ stores }) {
   );
 }
 
-function Listings({ stores }) {
+function Listings({ stores, onClick }) {
   return (
     <Flex
       pb={3}
@@ -219,7 +221,9 @@ function Listings({ stores }) {
     >
       {stores.find((store) => store.listing.length) ? (
         stores.map(({ listing }) =>
-          listing.map((value) => <Listing {...value} />)
+          listing.map((value) => (
+            <Listing {...value} onClick={() => onClick(value.id)} />
+          ))
         )
       ) : (
         <Alert p={5} status="warning">
@@ -232,8 +236,18 @@ function Listings({ stores }) {
 }
 
 export default function Dashboard() {
-  const { data } = useSubscription(GET_DASHBOARD);
+  const { data, loading } = useSubscription(GET_DASHBOARD);
   const stores = data?.store_admin_current || [];
+
+  const history = useHistory();
+
+  const handleListingClick = (id) => {
+    history.push(`/listing/${id}`);
+  };
+
+  if (loading) {
+    return <StackLoading />;
+  }
 
   return (
     <Flex
@@ -254,7 +268,7 @@ export default function Dashboard() {
             <Stores stores={stores} />
           </TabPanel>
           <TabPanel>
-            <Listings stores={stores} />
+            <Listings stores={stores} onClick={handleListingClick} />
           </TabPanel>
         </TabPanels>
       </Tabs>

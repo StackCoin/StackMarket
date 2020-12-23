@@ -1,57 +1,51 @@
-import React, { useState, useRef } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
-import { FaFilter } from 'react-icons/fa';
+import { gql, useQuery } from '@apollo/client';
+import { CheckIcon, SearchIcon } from '@chakra-ui/icons';
 import {
-  VisuallyHidden,
-  ControlBox,
   Box,
-  useDisclosure,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
   Button,
-  Grid,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  Tag,
+  ControlBox,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  Flex,
+  IconButton,
   Image,
+  Input,
   InputGroup,
   InputLeftElement,
-  Icon,
-  Input,
-  Link,
-  Flex,
+  Tag,
   Text,
-  IconButton,
-} from '@chakra-ui/core';
+  useDisclosure,
+  VisuallyHidden,
+} from '@chakra-ui/react';
+import React, { useRef, useState } from 'react';
+import { FaFilter } from 'react-icons/fa';
+import { useHistory } from 'react-router-dom';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import Topbar from '../components/Topbar';
-import { gql, useQuery } from '@apollo/client';
-
-const GET_LISTING = gql`
-  query($id: Int!) {
-    listing(where: { id: { _eq: $id } }) {
-      id
-      name
-      price
-      sold
-      created_at
-    }
-  }
-`;
+import StackLoading from '../components/StackLoading';
 
 const GET_LISTINGS = gql`
-  query GetListings($name: String!, $sold: Boolean!) {
+  query GetListings(
+    $name: String!
+    $sold: Boolean!
+    $limit: Int
+    $offset: Int
+  ) {
+    listing_aggregate {
+      aggregate {
+        count
+      }
+    }
     listing(
       where: { name: { _ilike: $name }, sold: { _eq: $sold } }
       order_by: { created_at: desc }
+      limit: $limit
+      offset: $offset
     ) {
       id
       name
@@ -90,10 +84,10 @@ const Listing = ({ onClick, id, resources, store, name, price, sold }) => {
         <Flex w="100%" justifyContent="space-between" alignItems="center">
           <Text fontWeight="800">{name}</Text>
           <Flex height="100%" alignItems="center">
-            <Tag variantColor="yellow" mr={3}>
+            <Tag colorScheme="yellow" mr={3}>
               {price} STK
             </Tag>
-            <Tag variantColor="cyan">{sold ? 'Sold' : 'For Sale'}</Tag>
+            <Tag colorScheme="cyan">{sold ? 'Sold' : 'For Sale'}</Tag>
           </Flex>
         </Flex>
       </Flex>
@@ -107,58 +101,24 @@ const Listing = ({ onClick, id, resources, store, name, price, sold }) => {
           />
         ))}
       </Flex>
-      <Flex>
-        Sold By:&nbsp;
-        <Link color="teal.500" href="#">
-          {store.name}
-        </Link>
-      </Flex>
+      <Flex>Sold By:&nbsp;{store.name}</Flex>
     </Flex>
-  );
-};
-
-const ListingView = ({ id, onReturnToListings }) => {
-  const { data } = useQuery(GET_LISTING, { variables: { id } });
-  const {
-    listing: [listing],
-  } = data || { listing: [] };
-
-  const onCloseCallback = () => {
-    onReturnToListings();
-  };
-
-  return (
-    <Modal isOpen={id} onClose={onCloseCallback}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Listing</ModalHeader>
-        <ModalCloseButton />
-        {listing && (
-          <ModalBody>
-            <Grid templateColumns="2fr 3fr">
-              <Text as="b">Name</Text>
-              <Text>{listing.name}</Text>
-              <Text as="b">Price</Text>
-              <Text>{listing.price}</Text>
-              <Text as="b">Sold</Text>
-              <Text>{listing.sold ? 'Yes' : 'No'}</Text>
-              <Text as="b">Created At</Text>
-              <Text>{listing.created_at}</Text>
-            </Grid>
-          </ModalBody>
-        )}
-      </ModalContent>
-    </Modal>
   );
 };
 
 export default function ViewListings() {
   const [search, setSearch] = useState('');
   const [showSold, setShowSold] = useState(false);
+  const [limit, setLimit] = useState(5);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const filterRef = useRef();
-  const { data } = useQuery(GET_LISTINGS, {
-    variables: { name: `%${search}%`, sold: showSold },
+  const { data, fetchMore } = useQuery(GET_LISTINGS, {
+    variables: {
+      name: `%${search}%`,
+      sold: showSold,
+      limit: limit,
+      offset: 0,
+    },
   });
   const { listing: listings } = data || { listing: [] };
 
@@ -166,10 +126,6 @@ export default function ViewListings() {
 
   const handleListingClick = (id) => {
     history.push(`/listing/${id}`);
-  };
-
-  const handleReturnToListings = (id) => {
-    history.push(`/listings`);
   };
 
   return (
@@ -191,9 +147,7 @@ export default function ViewListings() {
         flex={1}
       >
         <InputGroup pb={4}>
-          <InputLeftElement
-            children={<Icon name="search" color="gray.300" />}
-          />
+          <InputLeftElement children={<SearchIcon color="gray.300" />} />
           <Input
             type="text"
             onChange={(value) => setSearch(value.target.value)}
@@ -203,9 +157,9 @@ export default function ViewListings() {
           <IconButton
             ref={filterRef}
             onClick={onOpen}
-            variantColor="teal"
+            colorScheme="teal"
             aria-label="Filters"
-            icon={FaFilter}
+            icon={<FaFilter />}
           />
           <Drawer
             isOpen={isOpen}
@@ -236,7 +190,7 @@ export default function ViewListings() {
                     }}
                     _focus={{ borderColor: 'green.600', boxShadow: 'outline' }}
                   >
-                    <Icon name="check" size="16px" />
+                    <CheckIcon size="16px" />
                   </ControlBox>
                   <Box
                     as="span"
@@ -257,17 +211,29 @@ export default function ViewListings() {
             </DrawerContent>
           </Drawer>
         </InputGroup>
-        <Flex
-          w="100%"
-          style={{ gap: '1rem' }}
-          justifyContent="space-between"
-          alignItems="center"
-          direction="column"
-          overflow="auto"
-        >
-          {listings.map((listing) => (
-            <Listing {...listing} onClick={(_, id) => handleListingClick(id)} />
-          ))}
+        <Flex id="listings" overflow="auto">
+          <InfiniteScroll
+            dataLength={listings.length}
+            next={() => {
+              fetchMore({
+                variables: { offset: listings.length, limit: 5 },
+              }).then((fetchMoreResult) => {
+                setLimit(limit + fetchMoreResult.data.listing.length);
+              });
+            }}
+            hasMore={listings.length < data?.listing_aggregate.aggregate.count}
+            loader={<StackLoading height="100px" />}
+            scrollableTarget="listings"
+          >
+            {listings.map((listing) => (
+              <Flex key={listing.id} mb={5}>
+                <Listing
+                  {...listing}
+                  onClick={(_, id) => handleListingClick(id)}
+                />
+              </Flex>
+            ))}
+          </InfiniteScroll>
         </Flex>
       </Flex>
     </Flex>

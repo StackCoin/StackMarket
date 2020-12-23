@@ -1,6 +1,17 @@
 import React from 'react';
-import { Button, Flex, Text } from '@chakra-ui/core';
-import { useHistory, useLocation } from 'react-router-dom';
+import {
+  useMediaQuery,
+  Button,
+  Menu,
+  MenuItem,
+  MenuButton,
+  MenuList,
+  Flex,
+  IconButton,
+  Text,
+} from '@chakra-ui/react';
+import { HamburgerIcon } from '@chakra-ui/icons';
+import { Link, useHistory } from 'react-router-dom';
 import { useAuth } from '../hooks';
 import UserDisplay from './UserDisplay';
 import { isDevAdmin } from '../App';
@@ -15,9 +26,10 @@ function LoginButton() {
 }
 
 export default () => {
+  const [isLargerThan600] = useMediaQuery('(min-width: 600px)');
+
   const { isAuthenticated, user, logout } = useAuth();
   const history = useHistory();
-  const location = useLocation();
 
   if (isDevAdmin && !isAuthenticated) {
     history.push('/stacks');
@@ -31,30 +43,47 @@ export default () => {
       justifyContent="space-between"
       alignItems="center"
     >
-      <Text fontSize="xl" fontWeight="900" as="em">
-        stackmarket
-      </Text>
+      <Link to="/listings">
+        <Text fontSize="xl" fontWeight="900" as="em">
+          stackmarket
+        </Text>
+      </Link>
       <Flex>
-        <Button
-          mr={3}
-          onClick={() => history.push('/listings')}
-          variantColor="blue"
-        >
-          All Listings
-        </Button>
-        {isAuthenticated ? (
+        {isLargerThan600 ? (
           <>
             <Button
               mr={3}
-              onClick={() => history.push('/dashboard')}
-              variantColor="yellow"
+              onClick={() => history.push('/listings')}
+              colorScheme="blue"
             >
-              Your Dashboard
+              All Listings
             </Button>
-            <UserDisplay user={user} logout={logout} />
+            {isAuthenticated ? (
+              <>
+                <Button
+                  mr={3}
+                  onClick={() => history.push('/dashboard')}
+                  colorScheme="yellow"
+                >
+                  Your Dashboard
+                </Button>
+                <UserDisplay user={user} logout={logout} />
+              </>
+            ) : (
+              <LoginButton />
+            )}
           </>
         ) : (
-          <LoginButton />
+          <Menu>
+            <MenuButton as={IconButton} icon={<HamburgerIcon />}></MenuButton>
+            <MenuList>
+              <UserDisplay user={user} logout={logout} />
+              <MenuItem>All Listing</MenuItem>
+              <MenuItem onClick={() => history.push('/dashboard')}>
+                Your Dashboard
+              </MenuItem>
+            </MenuList>
+          </Menu>
         )}
       </Flex>
     </Flex>

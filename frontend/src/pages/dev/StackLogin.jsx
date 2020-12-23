@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { gql, useQuery } from '@apollo/client';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
-import { Button, Flex, Text, Image } from '@chakra-ui/core';
+import { Button, Flex, Text, Image } from '@chakra-ui/react';
 import hubbahubba from '../../hubbahubba.jpg';
 
 const GET_USERS = gql`
@@ -24,6 +24,10 @@ export default function StackLogin({ setAccessToken }) {
   const { user } = data || { user: [] };
   const [selected, setSelected] = useState();
   const history = useHistory();
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   const handlePop = async () => {
     const iat = Math.floor(new Date().getTime() / 1000);

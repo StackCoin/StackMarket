@@ -12,7 +12,7 @@ import {
   Image,
   Button,
   Text,
-} from '@chakra-ui/core';
+} from '@chakra-ui/react';
 
 export default function UserDisplay({ user, logout }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -44,10 +44,10 @@ export default function UserDisplay({ user, logout }) {
           </ModalBody>
 
           <ModalFooter>
-            <Button variantColor="red" mr={5} onClick={logout}>
+            <Button colorScheme="red" mr={5} onClick={logout}>
               Logout
             </Button>
-            <Button variantColor="yellow" onClick={onClose}>
+            <Button colorScheme="yellow" onClick={onClose}>
               Close
             </Button>
           </ModalFooter>

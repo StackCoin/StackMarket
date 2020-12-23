@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, AvatarGroup, Avatar, Tag, Text, Flex } from '@chakra-ui/core';
+import { Button, AvatarGroup, Avatar, Tag, Text, Flex } from '@chakra-ui/react';
+import { SettingsIcon } from '@chakra-ui/icons';
 
 export default ({
   id,
@@ -38,8 +39,8 @@ export default ({
         {onEditClick && (
           <Button
             onClick={stopPropOnEditDangerously}
-            leftIcon="settings"
-            variantColor="teal"
+            leftIcon={<SettingsIcon />}
+            colorScheme="teal"
             variant="outline"
             size="xs"
           >

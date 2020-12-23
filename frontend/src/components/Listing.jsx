@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, Tag, Text } from '@chakra-ui/core';
+import { Flex, Tag, Text } from '@chakra-ui/react';
 
 export default ({ onClick, id, name, price, sold }) => {
   return (
@@ -16,10 +16,10 @@ export default ({ onClick, id, name, price, sold }) => {
       <Flex w="100%" justifyContent="space-between" alignItems="center">
         <Text fontWeight="800">{name}</Text>
         <Flex height="100%" alignItems="center">
-          <Tag variantColor="yellow" mr={3}>
+          <Tag colorScheme="yellow" mr={3}>
             {price} STK
           </Tag>
-          <Tag variantColor="cyan">{sold ? 'Sold' : 'For Sale'}</Tag>
+          <Tag colorScheme="cyan">{sold ? 'Sold' : 'For Sale'}</Tag>
         </Flex>
       </Flex>
     </Flex>

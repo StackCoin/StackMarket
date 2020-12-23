@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { Code, Box, Button, Flex, Text, Heading } from '@chakra-ui/core';
+import { Code, Box, Button, Flex, Text, Heading } from '@chakra-ui/react';
 import { useAuth } from '../hooks';
 
 export default function LandingPage() {
@@ -46,7 +46,7 @@ export default function LandingPage() {
               <br /> Pseudo Currency Marketplace
             </Heading>
           </Box>
-          <Button variantColor="yellow" onClick={handleShopClick}>
+          <Button colorScheme="yellow" onClick={handleShopClick}>
             Shop Now
           </Button>
         </Flex>

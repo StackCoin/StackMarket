@@ -14,7 +14,7 @@ import {
 import { onError } from '@apollo/client/link/error';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { ThemeProvider, CSSReset, Flex } from '@chakra-ui/core';
+import { ChakraProvider, Flex } from '@chakra-ui/react';
 import {
   Dashboard,
   Listings,
@@ -23,7 +23,7 @@ import {
   Landing,
   Store,
 } from './pages';
-import Stack from './stack.png';
+import StackLoading from './components/StackLoading';
 
 export const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
 
@@ -42,16 +42,7 @@ function Routing({ setAccessToken }) {
   }
 
   if (isLoading) {
-    return (
-      <Flex
-        width="100%"
-        height="100vh"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <img alt="stk" src={Stack} width="40" height="40" />
-      </Flex>
-    );
+    return <StackLoading />;
   }
 
   return (
@@ -164,20 +155,19 @@ ApolloAuth.propTypes = {
 function App() {
   const [accessToken, setAccessToken] = useState('');
   return (
-    <ThemeProvider>
-      <Auth0Provider
-        domain={process.env.REACT_APP_AUTH0_DOMAIN}
-        clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
-        redirectUri={`${process.env.REACT_APP_URL}/dashboard`}
-        audience={process.env.REACT_APP_AUTH0_AUDIENCE}
-        scope="read:current_user update:current_user_metadata"
-      >
-        <ApolloAuth accessToken={accessToken} setAccessToken={setAccessToken}>
-          <CSSReset />
+    <Auth0Provider
+      domain={process.env.REACT_APP_AUTH0_DOMAIN}
+      clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
+      redirectUri={`${process.env.REACT_APP_URL}/dashboard`}
+      audience={process.env.REACT_APP_AUTH0_AUDIENCE}
+      scope="read:current_user update:current_user_metadata"
+    >
+      <ApolloAuth accessToken={accessToken} setAccessToken={setAccessToken}>
+        <ChakraProvider>
           <Routing setAccessToken={setAccessToken} />
-        </ApolloAuth>
-      </Auth0Provider>
-    </ThemeProvider>
+        </ChakraProvider>
+      </ApolloAuth>
+    </Auth0Provider>
   );
 }
 

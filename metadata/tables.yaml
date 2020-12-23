@@ -84,6 +84,7 @@
             admin:
               _eq: X-Hasura-User-Id-Internal
       columns:
+      - description
       - name
       - price
       - sold
@@ -95,6 +96,7 @@
     permission:
       columns:
       - created_at
+      - description
       - id
       - name
       - price
@@ -107,6 +109,7 @@
   - role: user
     permission:
       columns:
+      - description
       - name
       - price
       - sold
