@@ -213,7 +213,7 @@ function ImageDropzone({
                   key={index}
                   width="auto"
                   height={200}
-                  src={`${process.env.REACT_APP_UPLOADS_URL}/${specialName}`}
+                  src={`${window.__env__.REACT_APP_UPLOADS_URL}/${specialName}`}
                 />
                 <IconButton
                   onClick={(event) => {

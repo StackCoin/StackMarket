@@ -7,7 +7,7 @@ require("dotenv").config();
 const endpoint = "http://localhost:2015/api/v1/graphql";
 const graphQLClient = new GraphQLClient(endpoint, {
   headers: {
-    "x-hasura-admin-secret": process.env.HASURA_ADMIN_SECRET,
+    "x-hasura-admin-secret": window.__env__.HASURA_ADMIN_SECRET,
   },
 });
 
