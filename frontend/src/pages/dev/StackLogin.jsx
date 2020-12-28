@@ -32,7 +32,7 @@ export default function StackLogin({ setAccessToken }) {
   const handlePop = async () => {
     const iat = Math.floor(new Date().getTime() / 1000);
     const response = await fetch(
-      `${process.env.REACT_APP_JWT_SIGN_URL}?sub=stackmarket&iat=${iat}&allowed_roles=user&default_role=user&user_id=${selected.value}&user_id_internal=${selected.value}`
+      `${window.__env__.REACT_APP_JWT_SIGN_URL}?sub=stackmarket&iat=${iat}&allowed_roles=user&default_role=user&user_id=${selected.value}&user_id_internal=${selected.value}`
     );
     const token = await response.text();
     setAccessToken(token);

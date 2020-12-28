@@ -95,7 +95,7 @@ const Listing = ({ onClick, id, resources, store, name, price, sold }) => {
         {resources.map(({ resource: { image: { id: imageId } } }) => (
           <Image
             key={imageId}
-            src={`${process.env.REACT_APP_UPLOADS_URL}/${imageId}`}
+            src={`${window.__env__.REACT_APP_UPLOADS_URL}/${imageId}`}
             height={100}
             alt="Listing Image"
           />

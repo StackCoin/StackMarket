@@ -29,6 +29,20 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      window.__env__ = {
+        REACT_APP_API_URL = "{{ .Env.REACT_APP_API_URL }}",
+        REACT_APP_API_WS_URL = "{{ .Env.REACT_APP_API_WS_URL }}",
+        REACT_APP_JWT_SIGN_URL = "{{ .Env.REACT_APP_JWT_SIGN_URL }}",
+        REACT_APP_URL = "{{ .Env.REACT_APP_URL }}",
+        REACT_APP_S3_SIGN_URL = "{{ .Env.REACT_APP_S3_SIGN_URL }}",
+        REACT_APP_HASURA_ADMIN_SECRET = "{{ .Env.REACT_APP_HASURA_ADMIN_SECRET }}",
+        REACT_APP_AUTH0_AUDIENCE = "{{ .Env.REACT_APP_AUTH0_AUDIENCE }}",
+        REACT_APP_AUTH0_DOMAIN = "{{ .Env.REACT_APP_AUTH0_DOMAIN }}",
+        REACT_APP_AUTH0_CLIENT_ID = "{{ .Env.REACT_APP_AUTH0_CLIENT_ID }}",
+        REACT_APP_UPLOADS_URL = "{{ .Env.REACT_APP_UPLOADS_URL }}",
+      }
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

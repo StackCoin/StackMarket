@@ -1,0 +1,107 @@
+version: "3"
+
+services:
+  postgres:
+    container_name: stackmarket-postgres
+    image: postgres:12
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+
+  upload:
+    container_name: stackmarket-s3-api
+    restart: always
+    image: ecumene/stackupload:latest
+    ports:
+      - "127.0.0.1:8081:8081"
+    env_file:
+      - ./stackupload/.env
+
+  s3-minio:
+    container_name: stackmarket-minio
+    restart: always
+    image: minio/minio:latest
+    command: minio server /data
+    ports:
+      - "127.0.0.1:9000:9000"
+    env_file:
+      - ./stackupload/.env
+
+  frontend:
+    container_name: stackmarket-frontend
+    restart: always
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - "./frontend:/app"
+      - "/app/node_modules"
+    ports:
+      - "127.0.0.1:80:80"
+    env_file:
+      - ./frontend/.env
+    stdin_open: true
+
+  graphql-engine:
+    container_name: stackmarket-graphql-engine
+    restart: always
+    image: hasura/graphql-engine:v1.3.1
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - "postgres"
+    env_file:
+      - ./.env
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.hasura.loadbalancer.server.port=8080"
+      - "traefik.http.routers.hasura.rule=(Host(`market.stackcoin.world`) && PathPrefix(`/v1/graphql`))"
+      - "traefik.http.routers.hasura.entrypoints=websecure"
+      - "traefik.http.routers.hasura.tls.certresolver=myresolver"
+
+    traefik:
+      image: traefik:v2.2
+      restart: always
+      networks:
+        - web
+      command:
+        # - "--log.level=DEBUG"
+        - "--api.insecure=true"
+        - "--providers.docker"
+        - "--providers.docker.exposedbydefault=false"
+        - "--entrypoints.web.address=:80"
+        - "--entrypoints.websecure.address=:443"
+        - "--certificatesresolvers.myresolver.acme.email=me@mitchellhynes.com"
+        - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+        - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      ports:
+        - "80:80"
+        - "443:443"
+        # - "127.0.0.1:8080:8080"
+      volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"
+        - "./volumes/traefik_letsencrypt_data:/letsencrypt"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+        - "traefik.http.routers.http-catchall.entrypoints=web"
+        - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+    watchtower:
+      image: containrrr/watchtower:latest
+      restart: always
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      env_file:
+        - ./secrets/watchtower.env
+
+networks:
+  web:
+    external: true
+
+volumes:
+  db_data:

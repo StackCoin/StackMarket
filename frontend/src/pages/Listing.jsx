@@ -151,7 +151,7 @@ export default () => {
                             image: { id: imageId },
                           },
                         }) => ({
-                          original: `${process.env.REACT_APP_UPLOADS_URL}/${imageId}`,
+                          original: `${window.__env__.REACT_APP_UPLOADS_URL}/${imageId}`,
                         })
                       )}
                     />

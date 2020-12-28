@@ -2,7 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { gql, useQuery } from '@apollo/client';
 
 // TODO: dep cycle... make constants file
-const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
+const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
 
 export const logout = () => {
   window.localStorage.removeItem('badtoken');
@@ -37,7 +37,7 @@ export const useAuth = () => {
   };
 
   const { data, loading } = useQuery(CURRENT_USER);
-  const { avatar: picture, ...user } = data?.user_current[0] || {avatar: ""};
+  const { avatar: picture, ...user } = data?.user_current[0] || { avatar: '' };
 
   if (isDevAdmin) {
     return { ...badAuth, isLoading: loading, user: { picture, ...user } };

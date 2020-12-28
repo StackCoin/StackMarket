@@ -25,7 +25,7 @@ import {
 } from './pages';
 import StackLoading from './components/StackLoading';
 
-export const isDevAdmin = !!process.env.REACT_APP_HASURA_ADMIN_SECRET;
+export const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
 
 function Routing({ setAccessToken }) {
   const { isLoading, error } = useAuth();
@@ -82,9 +82,9 @@ function getAuthHeaders(isAuthenticated, accessToken, badToken) {
     return { Authorization: `Bearer ${accessToken}` };
   }
 
-  if (process.env.REACT_APP_HASURA_ADMIN_SECRET !== null && !badToken) {
+  if (window.__env__.REACT_APP_HASURA_ADMIN_SECRET !== null && !badToken) {
     return {
-      'x-hasura-admin-secret': process.env.REACT_APP_HASURA_ADMIN_SECRET,
+      'x-hasura-admin-secret': window.__env__.REACT_APP_HASURA_ADMIN_SECRET,
     };
   }
 
@@ -106,7 +106,7 @@ function ApolloAuth({ children, accessToken, setAccessToken }) {
   const headers = getAuthHeaders(isAuthenticated, accessToken, badToken);
 
   const http = new HttpLink({
-    uri: process.env.REACT_APP_API_URL,
+    uri: window.__env__.REACT_APP_API_URL,
     options: {
       reconnect: true,
     },
@@ -114,7 +114,7 @@ function ApolloAuth({ children, accessToken, setAccessToken }) {
   });
 
   const ws = new WebSocketLink({
-    uri: process.env.REACT_APP_API_WS_URL,
+    uri: window.__env__.REACT_APP_API_WS_URL,
     options: {
       reconnect: true,
       connectionParams: {
@@ -156,10 +156,10 @@ function App() {
   const [accessToken, setAccessToken] = useState('');
   return (
     <Auth0Provider
-      domain={process.env.REACT_APP_AUTH0_DOMAIN}
-      clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
-      redirectUri={`${process.env.REACT_APP_URL}/dashboard`}
-      audience={process.env.REACT_APP_AUTH0_AUDIENCE}
+      domain={window.__env__.REACT_APP_AUTH0_DOMAIN}
+      clientId={window.__env__.REACT_APP_AUTH0_CLIENT_ID}
+      redirectUri={`${window.__env__.REACT_APP_URL}/dashboard`}
+      audience={window.__env__.REACT_APP_AUTH0_AUDIENCE}
       scope="read:current_user update:current_user_metadata"
     >
       <ApolloAuth accessToken={accessToken} setAccessToken={setAccessToken}>
