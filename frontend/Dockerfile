@@ -19,6 +19,5 @@ COPY --from=buildstep /app/build /usr/share/nginx/html
 RUN pwd
 RUN cp /usr/share/nginx/html/index.html /index.template.html
 EXPOSE 80
-CMD ["dockerize", "-template", "/index.template.html:/usr/share/nginx/index.html", "-stdout", "/dev/stdout", "-stderr", "/dev/stderr", "--", "nginx"]
-# CMD ["dockerize", "-template", "/index.template.html:/usr/share/nginx/index.html", "-stdout", "/var/log/nginx/access.log", "-stderr", "/var/log/nginx/error.log", "--", "nginx"]
+CMD ["dockerize", "-template", "/index.template.html:/usr/share/nginx/html/index.html", "-stdout", "/dev/stdout", "-stderr", "/dev/stderr", "nginx"]
 
