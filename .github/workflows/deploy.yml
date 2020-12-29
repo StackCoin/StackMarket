@@ -13,6 +13,7 @@ jobs:
       - name: Publish to Dockerhub Registry
         uses: elgohr/Publish-Docker-Github-Action@2.2
         with:
+          workdir: frontend
           dockerfile: frontend/Dockerfile
           name: ecumene/stackmarket
           username: ${{ secrets.DOCKER_USERNAME }}
