@@ -25,10 +25,9 @@ import {
 } from './pages';
 import StackLoading from './components/StackLoading';
 
-export const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
-
 function Routing({ setAccessToken }) {
   const { isLoading, error } = useAuth();
+  const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
 
   if (error) {
     return (

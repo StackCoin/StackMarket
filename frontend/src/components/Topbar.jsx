@@ -14,7 +14,6 @@ import { HamburgerIcon } from '@chakra-ui/icons';
 import { Link, useHistory } from 'react-router-dom';
 import { useAuth } from '../hooks';
 import UserDisplay from './UserDisplay';
-import { isDevAdmin } from '../App';
 
 function LoginButton() {
   const { loginWithRedirect } = useAuth();
@@ -27,6 +26,7 @@ function LoginButton() {
 
 export default () => {
   const [isLargerThan600] = useMediaQuery('(min-width: 600px)');
+  const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
 
   const { isAuthenticated, user, logout } = useAuth();
   const history = useHistory();

@@ -1,9 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { gql, useQuery } from '@apollo/client';
 
-// TODO: dep cycle... make constants file
-const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
-
 export const logout = () => {
   window.localStorage.removeItem('badtoken');
   window.location.href = '/';
@@ -24,6 +21,7 @@ const CURRENT_USER = gql`
 
 // eslint-disable-next-line import/prefer-default-export
 export const useAuth = () => {
+  const isDevAdmin = !!window.__env__.REACT_APP_HASURA_ADMIN_SECRET;
   const auth = useAuth0();
   const badToken = window.localStorage.getItem('badtoken');
   const badAuth = {
