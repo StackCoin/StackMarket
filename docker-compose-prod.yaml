@@ -4,12 +4,11 @@ networks:
   web:
     external: true
 
-
 services:
   postgres:
     container_name: stackmarket-postgres
     networks:
-    - web
+      - web
     image: postgres:12
     restart: always
     volumes:
@@ -21,7 +20,7 @@ services:
     container_name: stackmarket-s3-api
     restart: always
     networks:
-    - web
+      - web
     image: ecumene/stackupload:latest
     env_file:
       - ./stackupload/.env
@@ -37,7 +36,7 @@ services:
   s3-minio:
     container_name: stackmarket-minio
     networks:
-    - web
+      - web
     restart: always
     image: minio/minio:latest
     command: minio server /data
@@ -55,9 +54,9 @@ services:
   frontend:
     container_name: stackmarket-frontend
     networks:
-    - web
+      - web
     restart: always
-    image: ecumene/stackmarket:latest
+    image: ecumene/stackmarket:main
     volumes:
       - "./frontend:/app"
       - "/app/node_modules"
@@ -76,7 +75,7 @@ services:
   graphql-engine:
     container_name: stackmarket-graphql-engine
     networks:
-    - web
+      - web
     restart: always
     image: hasura/graphql-engine:v1.3.1.cli-migrations-v2
     volumes:
@@ -100,32 +99,32 @@ services:
     image: traefik:v2.2
     restart: always
     networks:
-    - web
+      - web
     command:
-    # - "--log.level=DEBUG"
-    - "--api.insecure=true"
-    - "--providers.docker"
-    - "--providers.docker.exposedbydefault=false"
-    - "--entrypoints.web.address=:80"
-    - "--entrypoints.websecure.address=:443"
-    - "--certificatesresolvers.myresolver.acme.email=me@mitchellhynes.com"
-    - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-    - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.email=me@mitchellhynes.com"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-    - "80:80"
-    - "443:443"
+      - "80:80"
+      - "443:443"
     # - "127.0.0.1:8080:8080"
     volumes:
-    - "/var/run/docker.sock:/var/run/docker.sock"
-    - "./volumes/traefik_letsencrypt_data:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./volumes/traefik_letsencrypt_data:/letsencrypt"
     labels:
-    - "traefik.http.middlewares.stripprefix.stripprefix.prefixes=/api,/s3,/upload"
-    - "traefik.http.middlewares.stripprefix.stripprefix.forceSlash=false"
-    - "traefik.enable=true"
-    - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
-    - "traefik.http.routers.http-catchall.entrypoints=web"
-    - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
-    - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.stripprefix.stripprefix.prefixes=/api,/s3,/upload"
+      - "traefik.http.middlewares.stripprefix.stripprefix.forceSlash=false"
+      - "traefik.enable=true"
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
 volumes:
   db_data:
