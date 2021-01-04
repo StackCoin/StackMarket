@@ -14,7 +14,14 @@ import {
 import { onError } from '@apollo/client/link/error';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { ChakraProvider, Flex } from '@chakra-ui/react';
+import {
+  ChakraProvider,
+  Code,
+  Image,
+  Tooltip,
+  Text,
+  Flex,
+} from '@chakra-ui/react';
 import {
   Dashboard,
   Listings,
@@ -24,6 +31,8 @@ import {
   Store,
 } from './pages';
 import StackLoading from './components/StackLoading';
+import Flushed from './stack_flushed.png';
+import copy from 'copy-to-clipboard';
 
 function Routing({ setAccessToken }) {
   const { isLoading, error } = useAuth();
@@ -31,11 +40,22 @@ function Routing({ setAccessToken }) {
 
   if (error) {
     return (
-      <Flex alignItems="center" justifyContent="center">
-        FUCK@!!! Ireally screwed up man, and Im sorry... Please please please
-        forgive me.... IM SORRY I said Im sorry man!!!!
-        <br />
-        {error.message}
+      <Flex justifyContent="center" flexWrap="wrap">
+        <Image w={400} src={Flushed} />
+        <Flex direction="column" justifyContent="center" w={400}>
+          <Text fontSize="3xl" fontWeight="bold">
+            Oppsie Woopsie!
+          </Text>
+          <Text>
+            Looks like we hit a widde ewwor! Send this to one of our code
+            monkeys and we will work vewy hawd to fix it!
+          </Text>
+          <Tooltip label="Click to Copy" placement="bottom" defaultIsOpen>
+            <Code onMouseUp={() => copy(JSON.stringify(error))}>
+              {JSON.stringify(error)}
+            </Code>
+          </Tooltip>
+        </Flex>
       </Flex>
     );
   }
