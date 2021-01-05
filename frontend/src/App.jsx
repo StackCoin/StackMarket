@@ -101,7 +101,7 @@ function getAuthHeaders(isAuthenticated, accessToken, badToken) {
     return { Authorization: `Bearer ${accessToken}` };
   }
 
-  if (window.__env__.REACT_APP_HASURA_ADMIN_SECRET !== null && !badToken) {
+  if (window.__env__.REACT_APP_HASURA_ADMIN_SECRET && !badToken) {
     return {
       'x-hasura-admin-secret': window.__env__.REACT_APP_HASURA_ADMIN_SECRET,
     };
