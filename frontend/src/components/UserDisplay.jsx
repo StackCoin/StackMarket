@@ -21,6 +21,7 @@ export default function UserDisplay({ user, logout }) {
       <Image
         rounded="full"
         size="2rem"
+        height="100%"
         marginRight={1}
         src={user.picture}
         alt="User Profile"
